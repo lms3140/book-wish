@@ -22,14 +22,6 @@ const loginSchema = z.object({
 
 export type LoginFormType = z.infer<typeof loginSchema>;
 
-type ResponseLogin = {
-  user: {
-    userId: string;
-    nickname: string;
-  };
-  accessToken: string;
-};
-
 const init = {
   userId: "",
   password: "",
@@ -37,7 +29,7 @@ const init = {
 
 export function Login() {
   const navigate = useNavigate();
-  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
 
   const {
     control,
@@ -51,15 +43,17 @@ export function Login() {
 
   const handleLogin = async (formData: LoginFormType) => {
     try {
-      const res = await api.post<ResponseLogin>("/auth/login", formData);
-      setAccessToken(res.data.accessToken);
+      await api.post("/auth/login", formData);
+      setAuthenticated(true);
       navigate("/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError("root", {
           message: error.response?.data.message,
         });
-        throw new Error(error.response?.data.message || "오류가 발생했습니다.");
+        throw new Error(error.response?.data.message || "오류가 발생했습니다.", {
+          cause: error,
+        });
       }
     }
   };

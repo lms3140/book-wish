@@ -1,12 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { FormInputField } from "@/components/ui/FormInputField";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { createBook } from "./api/books";
-import { useAuthStore } from "@/store/auth";
-import { useSidePanelStore } from "@/store/sidePanelStore";
 
 const bookAddSchema = z.object({
   bookTitle: z.string().min(1, "필수 값입니다."),
@@ -49,8 +47,8 @@ export function BookAddForm() {
       alert("등록성공");
 
       reset(init);
-    } catch (e) {
-      console.log(e); // 실패처리
+    } catch {
+      // 실패처리
     }
   };
   return (

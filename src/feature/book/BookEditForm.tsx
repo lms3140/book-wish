@@ -42,7 +42,7 @@ export function BookEditForm() {
   useEffect(() => {
     if (!target) return;
     reset(target);
-  }, [target]);
+  }, [target, reset]);
 
   const bookEditSubmit = (data: BookEditFormType) => {
     const result = bookEditSchema.parse(data);

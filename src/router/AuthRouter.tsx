@@ -20,7 +20,7 @@ export function AuthRouter({ children }: { children: React.ReactNode }) {
   }
 
   if (isError) {
-    if (axios.isAxiosError(error) && error.response?.status === 400) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
       return <Navigate to="/login" replace />;
     } else {
       return <ErrorPage />;

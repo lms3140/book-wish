@@ -86,15 +86,12 @@ export function BookDataTable<TData, TValue>({
       alert("선택된 책이 없습니다.");
       return;
     }
-    console.log("??");
 
     const text = selectedBooks
       .map((book, index) => formatBookCopy(book, index))
       .join("\n\n");
 
     await navigator.clipboard.writeText(`도서 목록\n\n${text}`);
-    const a = await navigator.clipboard.readText();
-    console.log(a);
   };
 
   return (

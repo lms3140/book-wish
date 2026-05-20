@@ -28,6 +28,9 @@ export async function createBook({
     if (axios.isAxiosError(error)) {
       throw new Error(
         error.response?.data.message || "도서 등록에 실패했습니다.",
+        {
+          cause: error,
+        },
       );
     }
   }
@@ -62,6 +65,7 @@ export async function updateBook({
     if (axios.isAxiosError(error)) {
       throw new Error(
         error.response?.data.message || "도서 등록에 실패했습니다.",
+        { cause: error },
       );
     }
   }
@@ -75,7 +79,11 @@ export async function deleteBook(bookId: string) {
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data.message || "삭제에 실패했습니다.");
+      throw new Error(error.response?.data.message || "삭제에 실패했습니다.", {
+        cause: error,
+      });
+    } else {
+      throw new Error("알수 없는 에러가 발생", { cause: error });
     }
   }
 }
