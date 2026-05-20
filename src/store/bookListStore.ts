@@ -1,14 +1,14 @@
 import type { Book } from "@/feature/bookType";
 import { create } from "zustand";
 
-type BookAddStore = {
+type BookListStore = {
   bookList: Book[];
   addBook: (book: Book) => void;
   deleteBook: (id: string) => void;
   updateBook: (book: Book) => void;
 };
 
-export const useBookAddStore = create<BookAddStore>((set, get) => ({
+export const useBookListStore = create<BookListStore>((set, get) => ({
   bookList: [],
 
   addBook: (book: Book) =>
