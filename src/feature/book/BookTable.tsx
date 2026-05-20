@@ -12,7 +12,7 @@ import { bookKeys } from "./querykey/bookQueryKey";
 
 // data-table로 변경
 
-export const columns: ColumnDef<BookDetail>[] = [
+const columns: ColumnDef<BookDetail>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -77,9 +77,7 @@ export function BookTable() {
   const { data, isError } = useQuery({
     queryKey: bookKeys.bookList,
     queryFn: async (): Promise<BookResponse> => {
-      const { data } = await api.get<BookResponse>(
-        "http://localhost:3000/books",
-      );
+      const { data } = await api.get<BookResponse>("/books");
       return data;
     },
   });

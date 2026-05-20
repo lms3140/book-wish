@@ -1,8 +1,8 @@
-import { useAuthStore } from "@/store/auth";
 import axios, { type InternalAxiosRequestConfig } from "axios";
+import { useAuthStore } from "@/store/auth";
 
 export const api = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
 });
 
@@ -10,16 +10,7 @@ type RetryRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
-// 1. 요청 인터셉터: 모든 요청 헤더에 Access Token 심기
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-let refreshPromise: Promise<string> | null = null;
+let refreshPromise: Promise<void> | null = null;
 
 api.interceptors.response.use(
   (response) => response,
@@ -30,21 +21,19 @@ api.interceptors.response.use(
 
     const originalRequest = error.config as RetryRequestConfig | undefined;
 
-    if (!originalRequest) {
+    if (!originalRequest || error.response?.status !== 401) {
       return Promise.reject(error);
     }
 
-    if (error.response?.status !== 401) {
-      return Promise.reject(error);
-    }
-
+    // refresh 요청 자체가 401인 경우 (로그아웃 처리 등)
     if (originalRequest.url === "/auth/refresh") {
-      useAuthStore.setState({ accessToken: undefined });
+      useAuthStore.getState().setAuthenticated(false);
       return Promise.reject(error);
     }
 
+    // 이미 재시도한 요청인 경우
     if (originalRequest._retry) {
-      useAuthStore.setState({ accessToken: undefined });
+      useAuthStore.getState().setAuthenticated(false);
       return Promise.reject(error);
     }
 
@@ -54,22 +43,16 @@ api.interceptors.response.use(
       if (!refreshPromise) {
         refreshPromise = api
           .post("/auth/refresh")
-          .then((res) => res.data.accessToken)
+          .then(() => {}) // 쿠키 기반이므로 토큰을 직접 다루지 않음
           .finally(() => {
             refreshPromise = null;
           });
       }
 
-      const accessToken = await refreshPromise;
-
-      useAuthStore.setState({ accessToken });
-
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
+      await refreshPromise;
       return api(originalRequest);
     } catch (refreshError) {
-      useAuthStore.setState({ accessToken: undefined });
-
+      useAuthStore.getState().setAuthenticated(false);
       return Promise.reject(refreshError);
     }
   },

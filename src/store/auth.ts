@@ -2,22 +2,19 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 type AuthStore = {
-  accessToken: string;
-  setAccessToken: (accessToken: string) => void;
-  clearAccessToken: () => void;
+  isAuthenticated: boolean;
+  setAuthenticated: (value: boolean) => void;
 };
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      accessToken: "",
-      setAccessToken: (accessToken: string) => set({ accessToken }),
-      clearAccessToken: () => set({ accessToken: "" }),
+      isAuthenticated: false,
+      setAuthenticated: (value: boolean) => set({ isAuthenticated: value }),
     }),
     {
       name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ accessToken: state.accessToken }),
     },
   ),
 );

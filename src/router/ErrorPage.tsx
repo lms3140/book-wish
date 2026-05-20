@@ -8,8 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useQueryClient } from "@tanstack/react-query";
-import { Home, RotateCcw } from "lucide-react";
-import { isRouteErrorResponse, Link, useRouteError } from "react-router";
+import { RotateCcw } from "lucide-react";
+import { isRouteErrorResponse, useRouteError } from "react-router";
 
 export function ErrorPage() {
   const query = useQueryClient();
