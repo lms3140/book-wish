@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { FormInputField } from "@/components/ui/FormInputField";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { createBook } from "./api/books";
@@ -34,22 +34,23 @@ export function BookAddForm() {
     resolver: zodResolver(bookAddSchema),
   });
 
-  const bookAddSubmit = async (data: BookFormType) => {
-    try {
-      const result = bookAddSchema.parse(data);
-      if (!result) return;
-
-      createBook(result);
-
+  const mutation = useMutation({
+    mutationFn: createBook,
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["bookList"],
       });
       alert("등록성공");
-
       reset(init);
-    } catch {
-      // 실패처리
-    }
+    },
+    onError: (error) => {
+      alert(error.message || "등록 중 오류가 발생했습니다.");
+    },
+  });
+
+  const bookAddSubmit = (data: BookFormType) => {
+    const result = bookAddSchema.parse(data);
+    mutation.mutate(result);
   };
   return (
     <form
@@ -61,7 +62,9 @@ export function BookAddForm() {
       <FormInputField name="publisher" control={control} label="출판사" />
       <FormInputField name="genre" control={control} label="장르" />
       <FormInputField name="ISBN" control={control} label="ISBN (선택)" />
-      <Button type="submit">저장</Button>
+      <Button type="submit" disabled={mutation.isPending}>
+        {mutation.isPending ? "저장 중..." : "저장"}
+      </Button>
     </form>
   );
 }
