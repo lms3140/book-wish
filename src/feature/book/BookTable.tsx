@@ -8,7 +8,6 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import type { BookDetail, BookResponse } from "../bookType";
 import { BookDataTable } from "./BookDataTable";
-import { bookKeys } from "./querykey/bookQueryKey";
 
 // data-table로 변경
 
