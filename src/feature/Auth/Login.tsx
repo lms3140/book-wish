@@ -51,9 +51,12 @@ export function Login() {
         setError("root", {
           message: error.response?.data.message,
         });
-        throw new Error(error.response?.data.message || "오류가 발생했습니다.", {
-          cause: error,
-        });
+        throw new Error(
+          error.response?.data.message || "오류가 발생했습니다.",
+          {
+            cause: error,
+          },
+        );
       }
     }
   };
@@ -65,7 +68,12 @@ export function Login() {
       <CardContent>
         <form className="grid gap-2">
           <FormInputField control={control} label="아이디" name="userId" />
-          <FormInputField control={control} label="비밀번호" name="password" />
+          <FormInputField
+            control={control}
+            type="password"
+            label="비밀번호"
+            name="password"
+          />
           <p className="text-destructive text-xs">{errors.root?.message}</p>
         </form>
       </CardContent>
