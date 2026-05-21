@@ -1,12 +1,9 @@
 {
   "rewrites": [
     {
-      "source": "/:path*",
-      "destination": "https://wish.pruinventory.shop/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
 }
+
