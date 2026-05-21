@@ -2,7 +2,7 @@ import { FormInputField } from "@/components/ui/FormInputField";
 import { Button } from "@/components/ui/button";
 import { useBookStore } from "@/store/bookStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -44,13 +44,22 @@ export function BookEditForm() {
     reset(target);
   }, [target, reset]);
 
+  const mutation = useMutation({
+    mutationFn: updateBook,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookKeys.bookList });
+      alert("수정 성공");
+    },
+    onError: (error) => {
+      alert(error.message || "수정 중 오류가 발생했습니다.");
+    },
+  });
+
   const bookEditSubmit = (data: BookEditFormType) => {
     const result = bookEditSchema.parse(data);
     if (!target) return;
 
-    updateBook({ id: target.id, ...result });
-
-    queryClient.invalidateQueries({ queryKey: bookKeys.bookList });
+    mutation.mutate({ id: target.id, ...result });
   };
 
   return (
@@ -63,7 +72,9 @@ export function BookEditForm() {
       <FormInputField name="publisher" control={control} label="출판사" />
       <FormInputField name="genre" control={control} label="장르" />
       <FormInputField name="ISBN" control={control} label="ISBN (선택)" />
-      <Button type="submit">수정</Button>
+      <Button type="submit" disabled={mutation.isPending}>
+        {mutation.isPending ? "수정 중..." : "수정"}
+      </Button>
     </form>
   );
 }

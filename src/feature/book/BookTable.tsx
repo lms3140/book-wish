@@ -75,7 +75,7 @@ const columns: ColumnDef<BookDetail>[] = [
 export function BookTable() {
   const setBook = useBookStore((state) => state.setBook);
   const { data, isError } = useQuery({
-    queryKey: bookKeys.bookList,
+    queryKey: ["bookList"],
     queryFn: async (): Promise<BookResponse> => {
       const { data } = await api.get<BookResponse>("/books");
       return data;
