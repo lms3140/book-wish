@@ -13,6 +13,7 @@ type FormInputFieldProps<T extends FieldValues> = {
   name: Path<T>;
   control: Control<T>;
   label: string;
+  type?: React.HTMLInputTypeAttribute;
   autoComplete?: string;
   placeholder?: string;
 };
@@ -21,6 +22,7 @@ export function FormInputField<T extends FieldValues>({
   name,
   control,
   label,
+  type,
   autoComplete = "off",
   placeholder,
 }: FormInputFieldProps<T>) {
@@ -42,6 +44,7 @@ export function FormInputField<T extends FieldValues>({
             aria-invalid={fieldState.invalid}
             autoComplete={autoComplete}
             placeholder={placeholder}
+            type={type}
             value={field.value}
           />
         </Field>
