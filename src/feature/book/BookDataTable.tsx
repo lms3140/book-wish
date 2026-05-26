@@ -29,16 +29,18 @@ import {
 import { useState } from "react";
 import type { BookDetail } from "../bookType";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  rowClick: (data: TData) => void;
+interface DataTableProps<TValue> {
+  columns: ColumnDef<BookDetail, TValue>[];
+  data: BookDetail[];
+  rowClick: (data: BookDetail) => void;
+  onDelete?: (ids: string[]) => void;
 }
-export function BookDataTable<TData, TValue>({
+export function BookDataTable<TValue>({
   columns,
   data,
   rowClick,
-}: DataTableProps<TData, TValue>) {
+  onDelete,
+}: DataTableProps<TValue>) {
   const [sorting, setSorting] = useState<SortingState>([
     {
       id: "bookTitle",
@@ -80,7 +82,7 @@ export function BookDataTable<TData, TValue>({
   const handleCopy = async () => {
     const selectedBooks = table
       .getSelectedRowModel()
-      .rows.map((row) => row.original) as BookDetail[];
+      .rows.map((row) => row.original);
 
     if (selectedBooks.length <= 0) {
       alert("선택된 책이 없습니다.");
@@ -94,9 +96,25 @@ export function BookDataTable<TData, TValue>({
     await navigator.clipboard.writeText(`도서 목록\n\n${text}`);
   };
 
+  const handleDelete = () => {
+    const selectedIds = table
+      .getSelectedRowModel()
+      .rows.map((row) => row.original.id);
+
+    if (selectedIds.length <= 0) {
+      alert("선택된 책이 없습니다.");
+      return;
+    }
+
+    if (confirm(`선택한 ${selectedIds.length}권의 책을 삭제하시겠습니까?`)) {
+      onDelete?.(selectedIds);
+      table.resetRowSelection();
+    }
+  };
+
   return (
     <div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center gap-2 py-4">
         <Input
           placeholder="책 제목 필터"
           value={
@@ -116,6 +134,13 @@ export function BookDataTable<TData, TValue>({
           className="max-w-sm"
         />
         <Button onClick={handleCopy}>복사</Button>
+        <Button
+          variant="destructive"
+          onClick={handleDelete}
+          disabled={table.getSelectedRowModel().rows.length === 0}
+        >
+          삭제
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
