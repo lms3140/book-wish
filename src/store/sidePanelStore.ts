@@ -8,7 +8,7 @@ type SidePanelStore = {
 };
 
 export const useSidePanelStore = create<SidePanelStore>((set) => ({
-  mode: "detail",
+  mode: "add",
 
   setMode: (mode: SidePanelMode) => set({ mode }),
 }));

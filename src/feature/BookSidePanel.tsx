@@ -75,12 +75,12 @@ export function BookSidePanel() {
             >
               등록
             </Button>
-            <Button
+            {/* <Button
               onClick={() => setPanelMode("detail")}
               disabled={panelMode === "detail"}
             >
               상세
-            </Button>
+            </Button> */}
           </CardAction>
         </CardHeader>
         <CardContent>{renderPanelContent(panelMode)}</CardContent>

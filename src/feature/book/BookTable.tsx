@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/lib/api";
 import { useBookStore } from "@/store/bookStore";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import type { BookDetail, BookResponse } from "../bookType";
 import { BookDataTable } from "./BookDataTable";
+import { deleteBooks } from "./api/books";
 
 // data-table로 변경
 
@@ -73,11 +74,23 @@ const columns: ColumnDef<BookDetail>[] = [
 
 export function BookTable() {
   const setBook = useBookStore((state) => state.setBook);
+  const queryClient = useQueryClient();
   const { data, isError } = useQuery({
     queryKey: ["bookList"],
     queryFn: async (): Promise<BookResponse> => {
       const { data } = await api.get<BookResponse>("/books");
       return data;
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteBooks,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookList"] });
+      alert("삭제되었습니다.");
+    },
+    onError: (error) => {
+      alert(error.message || "삭제 중 오류가 발생했습니다.");
     },
   });
 
@@ -98,6 +111,7 @@ export function BookTable() {
             columns={columns}
             data={data ? (data.data ?? []) : []}
             rowClick={setBook}
+            onDelete={deleteMutation.mutate}
           />
         </CardContent>
       </Card>

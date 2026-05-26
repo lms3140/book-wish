@@ -87,3 +87,25 @@ export async function deleteBook(bookId: string) {
     }
   }
 }
+
+export async function deleteBooks(bookIds: string[]) {
+  try {
+    const { data } = await api.post<BookResponse<string>>(
+      "/books/delete-multiple",
+      {
+        ids: bookIds,
+      },
+    );
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data.message || "도서 삭제에 실패했습니다.",
+        {
+          cause: error,
+        },
+      );
+    }
+    throw error;
+  }
+}
