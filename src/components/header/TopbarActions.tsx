@@ -7,6 +7,8 @@ export function TopbarActions() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
+    const isConfirmed = window.confirm("로그아웃 하시겠습니까?");
+    if (!isConfirmed) return;
     await logout();
     navigate("/login");
   };

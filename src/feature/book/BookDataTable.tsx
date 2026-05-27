@@ -28,6 +28,8 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import type { BookDetail } from "../bookType";
+import { useBookStore } from "@/store/bookStore";
+import { useSidePanelStore } from "@/store/sidePanelStore";
 
 interface DataTableProps<TValue> {
   columns: ColumnDef<BookDetail, TValue>[];
@@ -52,6 +54,9 @@ export function BookDataTable<TValue>({
     id: false,
   });
   const [rowSelection, setRowSelection] = useState({});
+
+  const selectedBook = useBookStore((state) => state.book);
+  const panelMode = useSidePanelStore((state) => state.mode);
 
   const table = useReactTable({
     columns,
@@ -191,11 +196,20 @@ export function BookDataTable<TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
+                const isSelected = selectedBook?.id === row.original.id;
+                const highlightClass =
+                  panelMode === "edit"
+                    ? "bg-amber-50 dark:bg-amber-900/20"
+                    : "bg-muted";
+
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    onClick={() => rowClick(row.original)}
+                    onClick={() => {
+                      rowClick(row.original);
+                    }}
+                    className={isSelected ? highlightClass : ""}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
