@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type SidePanelMode = "detail" | "edit" | "add";
+export type SidePanelMode = "edit" | "add";
 
 type SidePanelStore = {
   mode: SidePanelMode;

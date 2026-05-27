@@ -7,31 +7,45 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useSidePanelStore, type SidePanelMode } from "@/store/sidePanelStore";
-import { BookAddForm } from "./book/BookAddForm";
-import { BookDetail } from "./book/BookDetail";
-import { BookEditForm } from "./book/BookEditForm";
 import { useEffect, useState } from "react";
+import { BookAddForm } from "./book/BookAddForm";
+import { BookEditForm } from "./book/BookEditForm";
 
 const titleMapping: Record<SidePanelMode, string> = {
-  detail: "상세",
   edit: "수정",
   add: "등록",
 };
 
+const titleColorMapping: Record<SidePanelMode, string> = {
+  edit: "text-amber-500",
+  add: "text-blue-500",
+};
+
 function renderPanelContent(panelMode: SidePanelMode) {
-  if (panelMode === "detail") {
-    return <BookDetail />;
+  switch (panelMode) {
+    case "add":
+      return <BookAddForm />;
+    case "edit":
+      return <BookEditForm />;
+    default:
+      return null;
   }
+}
 
-  if (panelMode === "add") {
-    return <BookAddForm />;
+function renderPanelActions(
+  panelMode: SidePanelMode,
+  setPanelMode: (mode: SidePanelMode) => void,
+) {
+  switch (panelMode) {
+    case "edit":
+      return <Button onClick={() => setPanelMode("add")}>등록으로 전환</Button>;
+    case "add":
+      return (
+        <Button onClick={() => setPanelMode("edit")}>수정으로 전환</Button>
+      );
+    default:
+      return null;
   }
-
-  if (panelMode === "edit") {
-    return <BookEditForm />;
-  }
-
-  return null;
 }
 
 export function BookSidePanel() {
@@ -61,27 +75,10 @@ export function BookSidePanel() {
     <div className="w-52">
       <Card>
         <CardHeader>
-          <CardTitle>{titleMapping[panelMode]}</CardTitle>
-          <CardAction>
-            <Button
-              onClick={() => setPanelMode("edit")}
-              disabled={panelMode === "edit"}
-            >
-              수정
-            </Button>
-            <Button
-              onClick={() => setPanelMode("add")}
-              disabled={panelMode === "add"}
-            >
-              등록
-            </Button>
-            {/* <Button
-              onClick={() => setPanelMode("detail")}
-              disabled={panelMode === "detail"}
-            >
-              상세
-            </Button> */}
-          </CardAction>
+          <CardTitle className={titleColorMapping[panelMode]}>
+            {titleMapping[panelMode]}
+          </CardTitle>
+          <CardAction>{renderPanelActions(panelMode, setPanelMode)}</CardAction>
         </CardHeader>
         <CardContent>{renderPanelContent(panelMode)}</CardContent>
       </Card>

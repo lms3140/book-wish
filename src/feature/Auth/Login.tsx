@@ -74,7 +74,11 @@ export function Login() {
             label="비밀번호"
             name="password"
           />
-          <p className="text-destructive text-xs">{errors.root?.message}</p>
+          <p className="text-destructive text-xs">
+            {errors.root?.message
+              ? "아이디 또는 비밀번호가 일치하지 않습니다."
+              : null}
+          </p>
         </form>
       </CardContent>
       <CardFooter>
