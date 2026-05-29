@@ -9,6 +9,8 @@ import z from "zod";
 import { updateBook } from "./api/books";
 import { bookKeys } from "./querykey/bookQueryKey";
 
+import { toast } from "@/lib/toast";
+
 const bookEditSchema = z.object({
   bookTitle: z.string().min(1, "bookTitle is required."),
   author: z.string().min(1, "author is required."),
@@ -48,10 +50,10 @@ export function BookEditForm() {
     mutationFn: updateBook,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookKeys.bookList });
-      alert("수정 성공");
+      toast.success("수정 성공");
     },
     onError: (error) => {
-      alert(error.message || "수정 중 오류가 발생했습니다.");
+      toast.error(error.message || "수정 중 오류가 발생했습니다.");
     },
   });
 

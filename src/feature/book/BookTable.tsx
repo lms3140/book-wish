@@ -10,6 +10,8 @@ import type { BookDetail, BookResponse } from "../bookType";
 import { BookDataTable } from "./BookDataTable";
 import { deleteBooks } from "./api/books";
 
+import { toast } from "@/lib/toast";
+
 // data-table로 변경
 
 const columns: ColumnDef<BookDetail>[] = [
@@ -87,10 +89,10 @@ export function BookTable() {
     mutationFn: deleteBooks,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookList"] });
-      alert("삭제되었습니다.");
+      toast.success("삭제되었습니다.");
     },
     onError: (error) => {
-      alert(error.message || "삭제 중 오류가 발생했습니다.");
+      toast.error(error.message || "삭제 중 오류가 발생했습니다.");
     },
   });
 

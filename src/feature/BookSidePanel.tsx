@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useBookStore } from "@/store/bookStore";
 import { useSidePanelStore, type SidePanelMode } from "@/store/sidePanelStore";
 import { useEffect, useState } from "react";
 import { BookAddForm } from "./book/BookAddForm";
@@ -35,13 +36,16 @@ function renderPanelContent(panelMode: SidePanelMode) {
 function renderPanelActions(
   panelMode: SidePanelMode,
   setPanelMode: (mode: SidePanelMode) => void,
+  hasSelectedBook: boolean,
 ) {
   switch (panelMode) {
     case "edit":
       return <Button onClick={() => setPanelMode("add")}>등록으로 전환</Button>;
     case "add":
       return (
-        <Button onClick={() => setPanelMode("edit")}>수정으로 전환</Button>
+        <Button onClick={() => setPanelMode("edit")} disabled={!hasSelectedBook}>
+          수정으로 전환
+        </Button>
       );
     default:
       return null;
@@ -66,6 +70,7 @@ export function BookSidePanel() {
 
   const panelMode = useSidePanelStore((state) => state.mode);
   const setPanelMode = useSidePanelStore((state) => state.setMode);
+  const hasSelectedBook = useBookStore((state) => !!state.book);
 
   if (!matches) {
     return null;
@@ -78,7 +83,9 @@ export function BookSidePanel() {
           <CardTitle className={titleColorMapping[panelMode]}>
             {titleMapping[panelMode]}
           </CardTitle>
-          <CardAction>{renderPanelActions(panelMode, setPanelMode)}</CardAction>
+          <CardAction>
+            {renderPanelActions(panelMode, setPanelMode, hasSelectedBook)}
+          </CardAction>
         </CardHeader>
         <CardContent>{renderPanelContent(panelMode)}</CardContent>
       </Card>
