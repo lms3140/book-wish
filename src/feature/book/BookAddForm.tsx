@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 import { createBook } from "./api/books";
 
+import { toast } from "@/lib/toast";
+
 const bookAddSchema = z.object({
   bookTitle: z.string().min(1, "필수 값입니다."),
   author: z.string().min(1, "필수 값입니다."),
@@ -40,11 +42,11 @@ export function BookAddForm() {
       queryClient.invalidateQueries({
         queryKey: ["bookList"],
       });
-      alert("등록성공");
+      toast.success("등록성공");
       reset(init);
     },
     onError: (error) => {
-      alert(error.message || "등록 중 오류가 발생했습니다.");
+      toast.error(error.message || "등록 중 오류가 발생했습니다.");
     },
   });
 

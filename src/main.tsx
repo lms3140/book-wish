@@ -5,6 +5,7 @@ import { RouterProvider } from "react-router";
 import "./index.css";
 import { router } from "./router/router";
 import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {

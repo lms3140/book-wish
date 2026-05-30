@@ -1,8 +1,12 @@
 import { TopbarActions } from "./components/header/TopbarActions";
 import { BookTable } from "./feature/book/BookTable";
 import { BookSidePanel } from "./feature/BookSidePanel";
+import { ToastContainer } from "react-toastify";
+import { useThemeStore } from "./store/themeStore";
 
 function App() {
+  const isDark = useThemeStore((state) => state.isDark);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="px-4 py-4 text-end">
@@ -14,6 +18,7 @@ function App() {
         </div>
         <BookSidePanel />
       </div>
+      <ToastContainer theme={isDark ? "dark" : "light"} />
     </div>
   );
 }

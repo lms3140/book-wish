@@ -31,6 +31,20 @@ import type { BookDetail } from "../bookType";
 import { useBookStore } from "@/store/bookStore";
 import { useSidePanelStore } from "@/store/sidePanelStore";
 
+import { toast } from "@/lib/toast";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 interface DataTableProps<TValue> {
   columns: ColumnDef<BookDetail, TValue>[];
   data: BookDetail[];
@@ -56,6 +70,7 @@ export function BookDataTable<TValue>({
   const [rowSelection, setRowSelection] = useState({});
 
   const selectedBook = useBookStore((state) => state.book);
+  const clearBook = useBookStore((state) => state.clearBook);
   const panelMode = useSidePanelStore((state) => state.mode);
 
   const table = useReactTable({
@@ -90,7 +105,7 @@ export function BookDataTable<TValue>({
       .rows.map((row) => row.original);
 
     if (selectedBooks.length <= 0) {
-      alert("선택된 책이 없습니다.");
+      toast.info("선택된 책이 없습니다.");
       return;
     }
 
@@ -99,6 +114,7 @@ export function BookDataTable<TValue>({
       .join("\n\n");
 
     await navigator.clipboard.writeText(`도서 목록\n\n${text}`);
+    toast.success("선택한 책 정보가 클립보드에 복사되었습니다.");
   };
 
   const handleDelete = () => {
@@ -106,15 +122,9 @@ export function BookDataTable<TValue>({
       .getSelectedRowModel()
       .rows.map((row) => row.original.id);
 
-    if (selectedIds.length <= 0) {
-      alert("선택된 책이 없습니다.");
-      return;
-    }
-
-    if (confirm(`선택한 ${selectedIds.length}권의 책을 삭제하시겠습니까?`)) {
-      onDelete?.(selectedIds);
-      table.resetRowSelection();
-    }
+    onDelete?.(selectedIds);
+    clearBook();
+    table.resetRowSelection();
   };
 
   return (
@@ -139,13 +149,31 @@ export function BookDataTable<TValue>({
           className="max-w-sm"
         />
         <Button onClick={handleCopy}>복사</Button>
-        <Button
-          variant="destructive"
-          onClick={handleDelete}
-          disabled={table.getSelectedRowModel().rows.length === 0}
-        >
-          삭제
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="destructive"
+              disabled={table.getSelectedRowModel().rows.length === 0}
+            >
+              삭제
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>도서 삭제</AlertDialogTitle>
+              <AlertDialogDescription>
+                선택한 {table.getSelectedRowModel().rows.length}권의 책을
+                삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                삭제
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
