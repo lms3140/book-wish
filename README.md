@@ -1,127 +1,74 @@
-# Book Wish
+# Book Wish (책 위시리스트)
 
 책 위시리스트를 등록하고 관리하는 MVP 웹 애플리케이션입니다.
 
-로그인한 사용자가 읽고 싶은 책을 목록으로 관리하고, 제목/장르 기준으로 찾고, 선택한 책 목록을 복사할 수 있는 기본 흐름에 집중했습니다.
+로그인한 사용자가 읽고 싶은 책을 목록으로 관리하고, 제목/장르 기준으로 필터링하며, 선택한 책 목록을 관리하는 핵심 기능에 집중했습니다.
 
-## MVP 범위
+## 주요 특징
 
-- 로그인 기반 접근 제어
-- 책 목록 조회
-- 책 등록
-- 책 상세 확인
-- 책 정보 수정
-- 제목/장르 필터링
-- 테이블 정렬, 페이지 이동, 컬럼 표시 설정
-- 선택한 책 목록 클립보드 복사
-- 라이트/다크 테마 전환
-- Access Token 만료 시 Refresh Token으로 재발급 후 요청 재시도
+- **로그인 기반 접근 제어**: 인증된 사용자만 위시리스트 접근 및 관리 가능.
+- **도서 목록 관리**: 도서 등록, 상세 조회, 정보 수정 및 삭제(단일/다중).
+- **데이터 필터링 및 정렬**: 제목, 장르별 필터링과 테이블 컬럼 정렬 기능.
+- **반응형 사이드 패널**: 선택한 도서의 상세 정보 확인 및 등록/수정 폼을 하나의 패널에서 처리.
+- **클립보드 복사**: 테이블에서 선택한 도서 목록을 클립보드로 복사하는 편의 기능.
+- **테마 지원**: 시스템 설정 연동 및 수동 전환이 가능한 라이트/다크 테마.
+- **안정적인 인증 처리**: Access Token 만료 시 Refresh Token을 통한 자동 재발급 및 요청 재시도 인터셉터 구현.
 
 ## 기술 스택
 
-- React 19
-- TypeScript
-- Vite
-- React Router
-- TanStack Query
-- TanStack Table
-- Zustand
-- React Hook Form
-- Zod
-- Axios
-- Tailwind CSS
-- shadcn/ui 기반 UI 컴포넌트
+- **Framework**: React 19, Vite 8
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4, shadcn/ui
+- **State Management**: Zustand 5
+- **Data Fetching**: TanStack Query (React Query) v5
+- **Table**: TanStack Table v8
+- **Form**: React Hook Form, Zod
+- **API**: Axios (Interceptors for Token Refresh)
+- **Icons**: Hugeicons, Lucide React
 
-## 시작하기
-
-```bash
-npm install
-npm run dev
-```
-
-개발 서버가 실행되면 Vite가 안내하는 로컬 주소로 접속합니다.
-
-## 사용 가능한 스크립트
-
-```bash
-npm run dev
-```
-
-개발 서버를 실행합니다.
-
-```bash
-npm run build
-```
-
-TypeScript 빌드와 Vite 프로덕션 빌드를 실행합니다.
-
-```bash
-npm run lint
-```
-
-ESLint 검사를 실행합니다.
-
-```bash
-npm run preview
-```
-
-빌드 결과물을 로컬에서 미리 확인합니다.
-
-## 백엔드 API
-
-프론트엔드는 기본적으로 아래 서버를 바라봅니다.
-
-```txt
-http://localhost:3000
-```
-
-현재 코드에서 사용하는 주요 API는 다음과 같습니다.
-
-| Method | Endpoint            | 용도                  |
-| ------ | ------------------- | --------------------- |
-| POST   | `/auth/login`       | 로그인                |
-| POST   | `/auth/logout`      | 로그아웃              |
-| GET    | `/auth/me`          | 현재 로그인 상태 확인 |
-| POST   | `/auth/refresh`     | Access Token 재발급   |
-| GET    | `/books`            | 책 목록 조회          |
-| POST   | `/books`            | 책 등록               |
-| POST   | `/books/:id/update` | 책 수정               |
-| POST   | `/books/:id/delete` | 책 삭제               |
-
-인증은 Access Token과 HttpOnly Cookie 기반 Refresh Token 조합을 전제로 합니다. Access Token은 Zustand persist를 통해 로컬 스토리지에 저장되고, Axios 인터셉터가 요청 헤더에 `Authorization: Bearer <token>`을 붙입니다.
-
-## 주요 구조
+## 프로젝트 구조
 
 ```txt
 src/
-  components/        공통 UI 컴포넌트
-  feature/Auth/      로그인 및 인증 API
-  feature/book/      책 목록, 등록, 수정, 상세, 테이블 기능
-  feature/BookSidePanel.tsx
-  lib/api.ts         Axios 인스턴스와 토큰 refresh 처리
-  router/            라우터와 인증 가드
-  store/             Zustand 상태 저장소
+  components/        # 공통 UI 컴포넌트 (shadcn/ui 기반)
+  feature/
+    Auth/            # 로그인 및 인증 로직
+    book/            # 도서 목록, 테이블, 등록/수정/삭제 기능
+    BookSidePanel.tsx # 통합 관리 사이드 패널
+  lib/
+    api.ts           # Axios 설정 및 토큰 갱신 인터셉터
+    utils.ts         # 공통 유틸리티
+  router/            # React Router 설정 및 Auth Guard
+  store/             # Zustand를 이용한 전역 상태 관리
 ```
 
-## MVP 화면 흐름
+## 최근 개선 사항
 
-1. 사용자는 `/login`에서 로그인합니다.
-2. 로그인 성공 시 `/`로 이동합니다.
-3. `/` 진입 시 `/auth/me`로 인증 상태를 확인합니다.
-4. 인증된 사용자는 책 목록 테이블을 확인합니다.
-5. 우측 패널에서 책 상세, 등록, 수정을 진행합니다.
-6. 테이블에서 책을 필터링하거나 선택한 목록을 클립보드로 복사합니다.
+- **UI/UX 개선**: 사이드 패널의 상태(등록/수정)를 시각적으로 명확하게 구분(타이틀 색상 및 버튼 문구 개선).
+- **비동기 처리 최적화**: `useMutation`을 도입하여 생성/수정/삭제 후 데이터 즉시 갱신(Invalidation) 처리 강화.
+- **삭제 기능 추가**: 단일 도서 삭제 및 테이블 내 다중 선택 삭제 기능 구현.
+- **환경 변수 분리**: API Base URL을 환경 변수로 관리하여 배포 환경 유연성 확보.
 
-## 개발 메모
+## 트러블슈팅
 
-- `src/lib/api.ts`에서 401 응답을 처리하고 `/auth/refresh` 요청을 공유 Promise로 관리합니다.
-- 동시에 여러 요청이 401을 받아도 refresh 요청은 한 번만 보내도록 구성되어 있습니다.
-- 관련 정리 문서는 `docs/20260506.md`에 있습니다.
+### 1. 비동기 작업 후 데이터 갱신 누락
 
-## 앞으로 개선할 수 있는 것
+- **문제**: 도서 등록/수정 후 테이블 데이터가 즉시 갱신되지 않는 현상 발생.
+- **원인**: 비동기 요청이 완료되기 전에 `invalidateQueries`가 호출되어 실제 데이터가 반영되기 전의 상태를 다시 불러옴.
+- **해결**: TanStack Query의 `useMutation`을 도입하여 `onSuccess` 콜백에서 쿼리 무효화(`invalidateQueries`)를 처리함으로써 비동기 작업 완료 후 즉각적인 UI 반영 보장.
 
-- 책 삭제 UI 연결 및 사용자 확인 흐름 추가
-- 등록/수정 mutation의 성공/실패 상태 처리 강화
-- 모바일 화면에서 사이드 패널 대체 UI 제공
-- API baseURL 환경 변수 분리
-- 깨진 한글 문자열 정리
+### 2. 동시 다발적 401 에러와 Refresh Token 경쟁 상태
+
+- **문제**: 여러 API 요청이 동시에 401(Unauthorized)을 받을 때, 각각 Refresh Token 요청을 보내 세션이 만료되거나 꼬이는 문제 발생.
+- **원인**: Refresh Token Rotation 방식에서 첫 번째 요청이 토큰을 갱신하면 서버는 기존 토큰을 폐기하므로, 동시에 진행된 다른 요청들은 유효하지 않은 토큰으로 접근하게 됨.
+- **해결**: Axios 인터셉터 내에서 `refreshPromise` 변수를 공유하는 패턴을 적용. 진행 중인 Refresh 요청이 있다면 새로운 요청을 보내지 않고 기존 Promise를 await 하게 하여 단 한 번의 갱신만 수행되도록 개선.
+
+### 3. 사용자 인지 부하를 줄이는 UI/UX 개선
+
+- **문제**: 사용자가 기능 사용을 위해 학습이 필요하다고 느끼는 인지 코스트 발생.
+- **원인**: 등록/수정 폼의 UI가 혼재되어 있고, 현재 작업 상태가 시각적으로 명확하지 않음.
+- **해결**: 조건부 렌더링을 통해 작업 모드(등록/수정)에 따라 필요한 UI 요소만 노출. 사이드 패널의 타이틀 색상 차별화(등록: 파란색, 수정: 주황색) 및 버튼 문구 구체화를 통해 직관적인 사용 환경 제공.
+
+## 라이선스
+
+이 프로젝트는 개인 학습 및 MVP 개발 목적으로 제작되었습니다.
