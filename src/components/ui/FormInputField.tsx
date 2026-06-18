@@ -16,6 +16,7 @@ type FormInputFieldProps<T extends FieldValues> = {
   type?: React.HTMLInputTypeAttribute;
   autoComplete?: string;
   placeholder?: string;
+  id?: string;
 };
 
 export function FormInputField<T extends FieldValues>({
@@ -24,6 +25,7 @@ export function FormInputField<T extends FieldValues>({
   label,
   type,
   autoComplete = "off",
+  id,
   placeholder,
 }: FormInputFieldProps<T>) {
   return (
@@ -32,7 +34,7 @@ export function FormInputField<T extends FieldValues>({
       control={control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel className="text-sm font-bold">
+          <FieldLabel htmlFor={id} className="text-sm font-bold">
             {label}
             {fieldState.invalid && (
               <FieldError className="text-xs" errors={[fieldState.error]} />
@@ -41,6 +43,7 @@ export function FormInputField<T extends FieldValues>({
 
           <Input
             {...field}
+            id={id}
             aria-invalid={fieldState.invalid}
             autoComplete={autoComplete}
             placeholder={placeholder}

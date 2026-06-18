@@ -6,36 +6,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useBookStore } from "@/store/bookStore";
-import { useSidePanelStore, type SidePanelMode } from "@/store/sidePanelStore";
+import { useOwnedBookStore, type OwnedBookSidePanelMode } from "@/store/ownedBookStore";
 import { useEffect, useState } from "react";
-import { BookAddForm } from "./book/BookAddForm";
-import { BookEditForm } from "./book/BookEditForm";
+import { OwnedBookAddForm } from "./OwnedBookAddForm";
+import { OwnedBookEditForm } from "./OwnedBookEditForm";
 
-const titleMapping: Record<SidePanelMode, string> = {
+const titleMapping: Record<OwnedBookSidePanelMode, string> = {
   edit: "수정",
   add: "등록",
 };
 
-const titleColorMapping: Record<SidePanelMode, string> = {
+const titleColorMapping: Record<OwnedBookSidePanelMode, string> = {
   edit: "text-amber-500",
   add: "text-blue-500",
 };
 
-function renderPanelContent(panelMode: SidePanelMode) {
+function renderPanelContent(panelMode: OwnedBookSidePanelMode) {
   switch (panelMode) {
     case "add":
-      return <BookAddForm />;
+      return <OwnedBookAddForm />;
     case "edit":
-      return <BookEditForm />;
+      return <OwnedBookEditForm />;
     default:
       return null;
   }
 }
 
 function renderPanelActions(
-  panelMode: SidePanelMode,
-  setPanelMode: (mode: SidePanelMode) => void,
+  panelMode: OwnedBookSidePanelMode,
+  setPanelMode: (mode: OwnedBookSidePanelMode) => void,
   hasSelectedBook: boolean,
 ) {
   switch (panelMode) {
@@ -43,7 +42,10 @@ function renderPanelActions(
       return <Button onClick={() => setPanelMode("add")}>등록으로 전환</Button>;
     case "add":
       return (
-        <Button onClick={() => setPanelMode("edit")} disabled={!hasSelectedBook}>
+        <Button
+          onClick={() => setPanelMode("edit")}
+          disabled={!hasSelectedBook}
+        >
           수정으로 전환
         </Button>
       );
@@ -52,7 +54,7 @@ function renderPanelActions(
   }
 }
 
-export function BookSidePanel() {
+export function OwnedBookSidePanel() {
   const [matches, setMatches] = useState(false);
 
   useEffect(() => {
@@ -68,9 +70,9 @@ export function BookSidePanel() {
     };
   }, []);
 
-  const panelMode = useSidePanelStore((state) => state.mode);
-  const setPanelMode = useSidePanelStore((state) => state.setMode);
-  const hasSelectedBook = useBookStore((state) => !!state.book);
+  const panelMode = useOwnedBookStore((state) => state.mode);
+  const setPanelMode = useOwnedBookStore((state) => state.setMode);
+  const hasSelectedBook = useOwnedBookStore((state) => !!state.ownedBook);
 
   if (!matches) {
     return null;
