@@ -108,7 +108,7 @@ export function OwnedBookTable() {
       queryClient.invalidateQueries({ queryKey: ["ownedBookList"] });
       toast.success("삭제되었습니다.");
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(error.message || "삭제 중 오류가 발생했습니다.");
     },
   });

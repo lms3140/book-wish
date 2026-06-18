@@ -5,13 +5,11 @@ import { useThemeStore } from "./store/themeStore";
 import { Link, Outlet } from "react-router";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "./components/ui/navigation-menu";
+import { navigationMenuTriggerStyle } from "./components/ui/navigation-menu-variants";
 
 function App() {
   const isDark = useThemeStore((state) => state.isDark);
