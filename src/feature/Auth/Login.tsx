@@ -81,9 +81,16 @@ export function Login() {
           </p>
         </form>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col gap-2">
         <Button className="w-full" onClick={handleSubmit(handleLogin)}>
           로그인
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full"
+          onClick={() => navigate("/register")}
+        >
+          회원가입
         </Button>
       </CardFooter>
     </Card>

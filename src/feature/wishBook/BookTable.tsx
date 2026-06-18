@@ -8,11 +8,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import type { BookDetail, BookResponse } from "../bookType";
 import { BookDataTable } from "./BookDataTable";
-import { deleteBooks } from "./api/books";
+import { deleteBooks, purchaseWishBook } from "./api/books";
 
 import { toast } from "@/lib/toast";
-
-// data-table로 변경
 
 const columns: ColumnDef<BookDetail>[] = [
   {
@@ -96,6 +94,17 @@ export function BookTable() {
     },
   });
 
+  const purchaseMutation = useMutation({
+    mutationFn: purchaseWishBook,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookList"] });
+      toast.success("구매처리 성공.");
+    },
+    onError: (error) => {
+      toast.error(error.message || "구매처리중 오류가 발생했습니다.");
+    },
+  });
+
   if (isError) {
     return (
       <Card>
@@ -114,6 +123,7 @@ export function BookTable() {
             data={data ? (data.data ?? []) : []}
             rowClick={setBook}
             onDelete={deleteMutation.mutate}
+            onPurchase={purchaseMutation.mutate}
           />
         </CardContent>
       </Card>

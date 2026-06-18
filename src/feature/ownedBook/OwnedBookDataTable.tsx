@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useOwnedBookStore } from "@/store/ownedBookStore";
 import {
   flexRender,
   getCoreRowModel,
@@ -27,11 +28,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import type { BookDetail } from "../bookType";
-import { useBookStore } from "@/store/bookStore";
-import { useSidePanelStore } from "@/store/sidePanelStore";
-
-import { toast } from "@/lib/toast";
+import type { OwnedBook } from "../bookType";
 
 import {
   AlertDialog,
@@ -46,12 +43,12 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface DataTableProps<TValue> {
-  columns: ColumnDef<BookDetail, TValue>[];
-  data: BookDetail[];
-  rowClick: (data: BookDetail) => void;
+  columns: ColumnDef<OwnedBook, TValue>[];
+  data: OwnedBook[];
+  rowClick: (data: OwnedBook) => void;
   onDelete?: (ids: string[]) => void;
 }
-export function BookDataTable<TValue>({
+export function OwnedBookDataTable<TValue>({
   columns,
   data,
   rowClick,
@@ -69,9 +66,9 @@ export function BookDataTable<TValue>({
   });
   const [rowSelection, setRowSelection] = useState({});
 
-  const selectedBook = useBookStore((state) => state.book);
-  const clearBook = useBookStore((state) => state.clearBook);
-  const panelMode = useSidePanelStore((state) => state.mode);
+  const selectedBook = useOwnedBookStore((state) => state.ownedBook);
+  const clearBook = useOwnedBookStore((state) => state.clearOwnedBook);
+  const panelMode = useOwnedBookStore((state) => state.mode);
 
   const table = useReactTable({
     columns,
@@ -91,31 +88,6 @@ export function BookDataTable<TValue>({
       rowSelection,
     },
   });
-
-  const formatBookCopy = (book: BookDetail, index: number) => {
-    return `${index + 1}. ${book.bookTitle} 
-- 저자: ${book.author}
-- 출판사: ${book.publisher}
-- 장르: ${book.genre}`;
-  };
-
-  const handleCopy = async () => {
-    const selectedBooks = table
-      .getSelectedRowModel()
-      .rows.map((row) => row.original);
-
-    if (selectedBooks.length <= 0) {
-      toast.info("선택된 책이 없습니다.");
-      return;
-    }
-
-    const text = selectedBooks
-      .map((book, index) => formatBookCopy(book, index))
-      .join("\n\n");
-
-    await navigator.clipboard.writeText(`도서 목록\n\n${text}`);
-    toast.success("선택한 책 정보가 클립보드에 복사되었습니다.");
-  };
 
   const handleDelete = () => {
     const selectedIds = table
@@ -148,7 +120,6 @@ export function BookDataTable<TValue>({
           }
           className="max-w-sm"
         />
-        <Button onClick={handleCopy}>복사</Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
