@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/customUi/DatePicker";
 
 const init: OwnedBookFormType = {
   bookTitle: "",
@@ -24,8 +25,9 @@ const init: OwnedBookFormType = {
   genre: "",
   publisher: "",
   isbn: "",
+  shortReview: "",
   readingStatus: "OWNED",
-  purchasedAt: new Date().toISOString().split("T")[0],
+  purchasedAt: new Date(),
 };
 
 export function OwnedBookAddForm() {
@@ -79,12 +81,7 @@ export function OwnedBookAddForm() {
         control={control}
         label="장르"
       />
-      <FormInputField
-        id="owner-rhf-isbn"
-        name="isbn"
-        control={control}
-        label="ISBN (선택)"
-      />
+      <FormInputField name="shortReview" control={control} label="짧은평" />
 
       <Controller
         name="readingStatus"
@@ -120,14 +117,23 @@ export function OwnedBookAddForm() {
           </Field>
         )}
       />
-
-      <FormInputField
+      <Controller
         name="purchasedAt"
         control={control}
-        label="구매일"
-        type="date"
+        render={({ field }) => (
+          <DatePicker
+            label="구매일"
+            onChange={field.onChange}
+            value={field.value}
+          />
+        )}
       />
-
+      <FormInputField
+        id="owner-rhf-isbn"
+        name="isbn"
+        control={control}
+        label="ISBN (선택)"
+      />
       <Button type="submit" disabled={mutation.isPending}>
         {mutation.isPending ? "저장 중..." : "저장"}
       </Button>

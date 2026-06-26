@@ -10,6 +10,7 @@ export const ownedBookSchema = z.object({
     .regex(/^\d+$/, "숫자만 입력할 수 있습니다.")
     .optional()
     .or(z.literal("")),
+  shortReview: z.string(),
   readingStatus: z.enum([
     "OWNED",
     "READING",
@@ -17,7 +18,7 @@ export const ownedBookSchema = z.object({
     "ABANDONED",
     "ABANDONED_READING",
   ]),
-  purchasedAt: z.string().min(1, "필수 값입니다."),
+  purchasedAt: z.date(),
 });
 
 export type OwnedBookFormValues = z.infer<typeof ownedBookSchema>;

@@ -64,6 +64,11 @@ const columns: ColumnDef<OwnedBook>[] = [
     header: "장르",
   },
   {
+    accessorKey: "short_review",
+    header: "짧은 평",
+    cell: ({ row }) => row.original.shortReview ?? "-",
+  },
+  {
     accessorKey: "isbn",
     header: "ISBN",
     cell: ({ row }) => row.original.isbn ?? "-",
@@ -130,7 +135,10 @@ export function OwnedBookTable() {
           <OwnedBookDataTable
             columns={columns}
             data={data ? (data.data ?? []) : []}
-            rowClick={(book) => setBook(book)}
+            rowClick={(book) => {
+              console.log(book);
+              setBook(book);
+            }}
             onDelete={deleteMutation.mutate}
           />
         </CardContent>

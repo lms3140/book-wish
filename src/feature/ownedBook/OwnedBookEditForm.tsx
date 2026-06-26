@@ -19,6 +19,7 @@ import {
   ownedBookSchema,
   READING_STATUS_LABEL_MAP,
 } from "./model/ownedBookSchema";
+import { DatePicker } from "@/components/customUi/DatePicker";
 
 const init: OwnedBookFormType = {
   bookTitle: "",
@@ -26,14 +27,15 @@ const init: OwnedBookFormType = {
   genre: "",
   publisher: "",
   isbn: "",
+  shortReview: "",
   readingStatus: "OWNED",
-  purchasedAt: new Date().toISOString().split("T")[0],
+  purchasedAt: new Date(),
 };
 
 export function OwnedBookEditForm() {
   const target = useOwnedBookStore((state) => state.ownedBook);
   const queryClient = useQueryClient();
-
+  console.log(target);
   const { control, handleSubmit, reset } = useForm<OwnedBookFormType>({
     defaultValues: target
       ? {
@@ -42,8 +44,9 @@ export function OwnedBookEditForm() {
           genre: target.genre,
           publisher: target.publisher,
           isbn: target.isbn ?? "",
+          shortReview: target.shortReview ?? "",
           readingStatus: target.readingStatus,
-          purchasedAt: target.purchasedAt.split("T")[0],
+          purchasedAt: new Date(target.purchasedAt),
         }
       : init,
     resolver: zodResolver(ownedBookSchema),
@@ -57,8 +60,9 @@ export function OwnedBookEditForm() {
         genre: target.genre,
         publisher: target.publisher,
         isbn: target.isbn ?? "",
+        shortReview: target.shortReview ?? "",
         readingStatus: target.readingStatus,
-        purchasedAt: target.purchasedAt.split("T")[0],
+        purchasedAt: new Date(target.purchasedAt),
       });
     }
   }, [target, reset]);
@@ -85,8 +89,7 @@ export function OwnedBookEditForm() {
       <FormInputField name="author" control={control} label="저자" />
       <FormInputField name="publisher" control={control} label="출판사" />
       <FormInputField name="genre" control={control} label="장르" />
-      <FormInputField name="isbn" control={control} label="ISBN (선택)" />
-
+      <FormInputField name="shortReview" control={control} label="짧은평" />
       <Controller
         name="readingStatus"
         control={control}
@@ -122,12 +125,18 @@ export function OwnedBookEditForm() {
         )}
       />
 
-      <FormInputField
+      <Controller
         name="purchasedAt"
         control={control}
-        label="구매일"
-        type="date"
+        render={({ field }) => (
+          <DatePicker
+            label="구매일"
+            onChange={field.onChange}
+            value={field.value}
+          />
+        )}
       />
+      <FormInputField name="isbn" control={control} label="ISBN (선택)" />
 
       <Button type="submit" disabled={mutation.isPending}>
         {mutation.isPending ? "수정 중..." : "수정"}
