@@ -13,7 +13,6 @@ import { navigationMenuTriggerStyle } from "./components/ui/navigation-menu-vari
 
 function App() {
   const isDark = useThemeStore((state) => state.isDark);
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex justify-end">

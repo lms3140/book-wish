@@ -35,5 +35,6 @@ export type OwnedBook = {
   genre: string;
   isbn?: string;
   readingStatus: ReadingStatus;
-  purchasedAt: string;
+  shortReview: string;
+  purchasedAt: Date;
 };

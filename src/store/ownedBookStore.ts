@@ -15,7 +15,13 @@ export const useOwnedBookStore = create<OwnedBookStore>((set) => ({
   ownedBook: null,
   mode: "add",
 
-  setOwnedBook: (ownedBook: OwnedBook) => set({ ownedBook }),
+  setOwnedBook: (ownedBook: OwnedBook) =>
+    set({
+      ownedBook: {
+        ...ownedBook,
+        purchasedAt: new Date(ownedBook.purchasedAt),
+      },
+    }),
 
   clearOwnedBook: () => set({ ownedBook: null }),
 

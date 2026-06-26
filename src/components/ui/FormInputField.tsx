@@ -34,7 +34,7 @@ export function FormInputField<T extends FieldValues>({
       control={control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={id} className="text-sm font-bold">
+          <FieldLabel htmlFor={id} className="text-sm ">
             {label}
             {fieldState.invalid && (
               <FieldError className="text-xs" errors={[fieldState.error]} />
