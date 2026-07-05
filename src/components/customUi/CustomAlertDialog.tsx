@@ -9,7 +9,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
-import { Button, type ButtonVariant } from "../ui/button";
+import { Button } from "../ui/button";
+import type { ButtonVariant } from "../ui/button-variants";
 
 type CustomAlertDialogProps = {
   disabled: boolean;

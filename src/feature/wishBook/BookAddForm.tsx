@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { FormInputField } from "@/components/ui/FormInputField";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { createBook } from "./api/books";
+import { createBook, getWishGenreList } from "./api/books";
 
 import { toast } from "@/lib/toast";
+
+import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
 
 const bookAddSchema = z.object({
   bookTitle: z.string().min(1, "필수 값입니다."),
@@ -36,6 +38,11 @@ export function BookAddForm() {
     resolver: zodResolver(bookAddSchema),
   });
 
+  const { data: genreList } = useQuery({
+    queryKey: ["wishBookGenre"],
+    queryFn: getWishGenreList,
+  });
+
   const mutation = useMutation({
     mutationFn: createBook,
     onSuccess: () => {
@@ -62,7 +69,12 @@ export function BookAddForm() {
       <FormInputField name="bookTitle" control={control} label="책 제목" />
       <FormInputField name="author" control={control} label="저자" />
       <FormInputField name="publisher" control={control} label="출판사" />
-      <FormInputField name="genre" control={control} label="장르" />
+      <RhfPopUpInput
+        label="장르"
+        control={control}
+        name="genre"
+        options={genreList?.data ?? []}
+      />
       <FormInputField name="ISBN" control={control} label="ISBN (선택)" />
       <Button type="submit" disabled={mutation.isPending}>
         {mutation.isPending ? "저장 중..." : "저장"}

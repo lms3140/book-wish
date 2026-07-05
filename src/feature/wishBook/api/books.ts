@@ -128,3 +128,8 @@ export async function purchaseWishBook(bookIds: string[]) {
     throw error;
   }
 }
+
+export async function getWishGenreList(): Promise<BookResponse<string[]>> {
+  const response = await api.get<BookResponse<string[]>>("/books/genre-list");
+  return response.data;
+}
