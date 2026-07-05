@@ -86,3 +86,12 @@ export async function deleteOwnedBooks(ids: string[]) {
     throw error;
   }
 }
+
+export async function getOwnedGenreList(): Promise<
+  OwnedBookResponse<string[]>
+> {
+  const response = await api.get<OwnedBookResponse<string[]>>(
+    "owned-books/genre-list",
+  );
+  return response.data;
+}

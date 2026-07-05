@@ -2,10 +2,14 @@ import { Button } from "@/components/ui/button";
 import { FormInputField } from "@/components/ui/FormInputField";
 import { useOwnedBookStore } from "@/store/ownedBookStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { updateOwnedBook, type OwnedBookFormType } from "./api/ownedBooks";
+import {
+  getOwnedGenreList,
+  updateOwnedBook,
+  type OwnedBookFormType,
+} from "./api/ownedBooks";
 import { toast } from "@/lib/toast";
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
@@ -20,6 +24,7 @@ import {
   READING_STATUS_LABEL_MAP,
 } from "./model/ownedBookSchema";
 import { DatePicker } from "@/components/customUi/DatePicker";
+import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
 
 const init: OwnedBookFormType = {
   bookTitle: "",
@@ -35,7 +40,6 @@ const init: OwnedBookFormType = {
 export function OwnedBookEditForm() {
   const target = useOwnedBookStore((state) => state.ownedBook);
   const queryClient = useQueryClient();
-  console.log(target);
   const { control, handleSubmit, reset } = useForm<OwnedBookFormType>({
     defaultValues: target
       ? {
@@ -51,7 +55,10 @@ export function OwnedBookEditForm() {
       : init,
     resolver: zodResolver(ownedBookSchema),
   });
-
+  const { data: genreList } = useQuery({
+    queryKey: ["ownedBookGenre"],
+    queryFn: getOwnedGenreList,
+  });
   useEffect(() => {
     if (target) {
       reset({
@@ -88,7 +95,12 @@ export function OwnedBookEditForm() {
       <FormInputField name="bookTitle" control={control} label="책 제목" />
       <FormInputField name="author" control={control} label="저자" />
       <FormInputField name="publisher" control={control} label="출판사" />
-      <FormInputField name="genre" control={control} label="장르" />
+      <RhfPopUpInput
+        control={control}
+        name="genre"
+        label="장르"
+        options={genreList?.data ?? []}
+      />
       <FormInputField name="shortReview" control={control} label="짧은평" />
       <Controller
         name="readingStatus"

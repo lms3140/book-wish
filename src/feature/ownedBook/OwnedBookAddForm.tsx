@@ -1,9 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { FormInputField } from "@/components/ui/FormInputField";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
-import { createOwnedBook, type OwnedBookFormType } from "./api/ownedBooks";
+import {
+  createOwnedBook,
+  getOwnedGenreList,
+  type OwnedBookFormType,
+} from "./api/ownedBooks";
 import { toast } from "@/lib/toast";
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
@@ -18,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/customUi/DatePicker";
+import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
 
 const init: OwnedBookFormType = {
   bookTitle: "",
@@ -36,7 +41,10 @@ export function OwnedBookAddForm() {
     defaultValues: init,
     resolver: zodResolver(ownedBookSchema),
   });
-
+  const { data: genreList } = useQuery({
+    queryKey: ["ownedBookGenre"],
+    queryFn: getOwnedGenreList,
+  });
   const mutation = useMutation({
     mutationFn: createOwnedBook,
     onSuccess: () => {
@@ -75,11 +83,11 @@ export function OwnedBookAddForm() {
         control={control}
         label="출판사"
       />
-      <FormInputField
-        id="owner-rhf-genre"
-        name="genre"
+      <RhfPopUpInput
         control={control}
+        name="genre"
         label="장르"
+        options={genreList?.data ?? []}
       />
       <FormInputField name="shortReview" control={control} label="짧은평" />
 
