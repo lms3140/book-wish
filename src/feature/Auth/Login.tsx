@@ -36,7 +36,7 @@ export function Login() {
     if (isAuthenticated) {
       navigate("/");
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
   const {
     control,
     handleSubmit,
