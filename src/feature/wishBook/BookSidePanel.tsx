@@ -8,9 +8,8 @@ import {
 } from "@/components/ui/card";
 import { useBookStore } from "@/store/bookStore";
 import { useSidePanelStore, type SidePanelMode } from "@/store/sidePanelStore";
-import { useEffect, useState } from "react";
-import { BookAddForm } from "./BookAddForm";
-import { BookEditForm } from "./BookEditForm";
+import { BookAddForm } from "./form/BookAddForm";
+import { BookEditForm } from "./form/BookEditForm";
 
 const titleMapping: Record<SidePanelMode, string> = {
   edit: "수정",
@@ -56,31 +55,12 @@ function renderPanelActions(
 }
 
 export function BookSidePanel() {
-  const [matches, setMatches] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 48rem)");
-    const update = () => {
-      setMatches(media.matches);
-    };
-    update();
-
-    media.addEventListener("change", update);
-    return () => {
-      media.removeEventListener("change", update);
-    };
-  }, []);
-
   const panelMode = useSidePanelStore((state) => state.mode);
   const setPanelMode = useSidePanelStore((state) => state.setMode);
   const hasSelectedBook = useBookStore((state) => !!state.book);
 
-  if (!matches) {
-    return null;
-  }
-
   return (
-    <div className="w-52">
+    <div>
       <Card>
         <CardHeader>
           <CardTitle className={titleColorMapping[panelMode]}>

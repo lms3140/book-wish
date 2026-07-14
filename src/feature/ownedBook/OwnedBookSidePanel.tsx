@@ -6,10 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useOwnedBookStore, type OwnedBookSidePanelMode } from "@/store/ownedBookStore";
-import { useEffect, useState } from "react";
-import { OwnedBookAddForm } from "./OwnedBookAddForm";
-import { OwnedBookEditForm } from "./OwnedBookEditForm";
+import {
+  useOwnedBookStore,
+  type OwnedBookSidePanelMode,
+} from "@/store/ownedBookStore";
+import { OwnedBookAddForm } from "./form/OwnedBookAddForm";
+import { OwnedBookEditForm } from "./form/OwnedBookEditForm";
 
 const titleMapping: Record<OwnedBookSidePanelMode, string> = {
   edit: "수정",
@@ -55,31 +57,12 @@ function renderPanelActions(
 }
 
 export function OwnedBookSidePanel() {
-  const [matches, setMatches] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 48rem)");
-    const update = () => {
-      setMatches(media.matches);
-    };
-    update();
-
-    media.addEventListener("change", update);
-    return () => {
-      media.removeEventListener("change", update);
-    };
-  }, []);
-
   const panelMode = useOwnedBookStore((state) => state.mode);
   const setPanelMode = useOwnedBookStore((state) => state.setMode);
   const hasSelectedBook = useOwnedBookStore((state) => !!state.ownedBook);
 
-  if (!matches) {
-    return null;
-  }
-
   return (
-    <div className="w-52">
+    <div>
       <Card>
         <CardHeader>
           <CardTitle className={titleColorMapping[panelMode]}>

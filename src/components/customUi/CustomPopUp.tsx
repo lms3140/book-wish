@@ -36,12 +36,15 @@ export function CustomPopup({
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <Label className="text-sm ">{label}</Label>
-      <PopoverTrigger asChild>
-        <Input value={selectedValue} readOnly />
-      </PopoverTrigger>
+      <div className="grid gap-2">
+        <Label className="text-sm">{label}</Label>
+        <PopoverTrigger asChild>
+          <Input value={selectedValue} readOnly />
+        </PopoverTrigger>
+      </div>
       <PopoverContent className={className}>
         <Input
+          placeholder="장르"
           value={searchText}
           onKeyDown={(e) => {
             if (e.nativeEvent.isComposing) return;

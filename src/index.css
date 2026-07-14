@@ -11,12 +11,6 @@
   --border: oklch(0.925 0.005 214.3);
 
   --primary: oklch(0.841 0.238 128.85);
-  --primary-hover: #db2777;
-  --primary-soft: #ffeaf4;
-
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-muted: #a1a1aa;
 
   font-family:
     Inter,

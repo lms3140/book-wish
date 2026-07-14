@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import z from "zod";
@@ -30,7 +31,12 @@ const init = {
 export function Login() {
   const navigate = useNavigate();
   const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
-
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated]);
   const {
     control,
     handleSubmit,
@@ -61,38 +67,42 @@ export function Login() {
     }
   };
   return (
-    <Card className="max-w-sm mx-auto">
-      <CardHeader>
-        <CardTitle>로그인</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form className="grid gap-2">
-          <FormInputField control={control} label="아이디" name="userId" />
-          <FormInputField
-            control={control}
-            type="password"
-            label="비밀번호"
-            name="password"
-          />
-          <p className="text-destructive text-xs">
-            {errors.root?.message
-              ? "아이디 또는 비밀번호가 일치하지 않습니다."
-              : null}
-          </p>
+    <div className="h-lvh flex items-center">
+      <div className="mx-auto">
+        <form onSubmit={handleSubmit(handleLogin)}>
+          <Card className="min-w-xs max-w-sm ">
+            <CardHeader>
+              <CardTitle>로그인</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormInputField control={control} label="아이디" name="userId" />
+              <FormInputField
+                control={control}
+                type="password"
+                label="비밀번호"
+                name="password"
+              />
+              <p className="text-destructive text-xs">
+                {errors.root?.message
+                  ? "아이디 또는 비밀번호가 일치하지 않습니다."
+                  : null}
+              </p>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-2">
+              <Button className="w-full" type="submit">
+                로그인
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => navigate("/register")}
+              >
+                회원가입
+              </Button>
+            </CardFooter>
+          </Card>
         </form>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-2">
-        <Button className="w-full" onClick={handleSubmit(handleLogin)}>
-          로그인
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full"
-          onClick={() => navigate("/register")}
-        >
-          회원가입
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -26,7 +26,7 @@ export function RhfPopUpInput<T extends FieldValues>({
       render={({ field }) => (
         <CustomPopup
           label={label}
-          className="w-52"
+          className="w-fit"
           value={field.value}
           onChange={field.onChange}
           options={options}
