@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { BookFormType } from "../BookAddForm";
+import type { BookFormType } from "../form/BookAddForm";
 import axios from "axios";
 
 type BookResponse<T> = {

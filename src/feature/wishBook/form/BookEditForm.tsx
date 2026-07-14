@@ -1,4 +1,3 @@
-import { FormInputField } from "@/components/ui/FormInputField";
 import { Button } from "@/components/ui/button";
 import { useBookStore } from "@/store/bookStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,11 +5,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { getWishGenreList, updateBook } from "./api/books";
-import { bookKeys } from "./querykey/bookQueryKey";
+import { getWishGenreList, updateBook } from "../api/books";
+import { bookKeys } from "../querykey/bookQueryKey";
 
+import { FormLayout, FormPanel } from "@/components/layout/Form";
 import { toast } from "@/lib/toast";
-import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
+import { WishBookFormFields } from "./WishBookFormFields";
 
 const bookEditSchema = z.object({
   bookTitle: z.string().min(1, "bookTitle is required."),
@@ -70,23 +70,21 @@ export function BookEditForm() {
   };
 
   return (
-    <form
+    <FormLayout
       onSubmit={handleSubmit(bookEditSubmit)}
       className="flex flex-col gap-2"
     >
-      <FormInputField name="bookTitle" control={control} label="책 제목" />
-      <FormInputField name="author" control={control} label="저자" />
-      <FormInputField name="publisher" control={control} label="출판사" />
-      <RhfPopUpInput
-        label="장르"
-        control={control}
-        name="genre"
-        options={genreList?.data ?? []}
-      />
-      <FormInputField name="ISBN" control={control} label="ISBN (선택)" />
-      <Button type="submit" disabled={mutation.isPending}>
-        {mutation.isPending ? "수정 중..." : "수정"}
-      </Button>
-    </form>
+      <FormPanel>
+        <WishBookFormFields
+          control={control}
+          genreList={genreList?.data ?? []}
+        />
+        <div className="flex justify-end">
+          <Button type="submit" size={"lg"} disabled={mutation.isPending}>
+            {mutation.isPending ? "수정 중..." : "수정"}
+          </Button>
+        </div>
+      </FormPanel>
+    </FormLayout>
   );
 }

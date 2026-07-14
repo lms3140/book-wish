@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { FormInputField } from "@/components/ui/FormInputField";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { createBook, getWishGenreList } from "./api/books";
+import { createBook, getWishGenreList } from "../api/books";
 
 import { toast } from "@/lib/toast";
 
-import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
+import { FormLayout, FormPanel } from "@/components/layout/Form";
+import { WishBookFormFields } from "./WishBookFormFields";
 
 const bookAddSchema = z.object({
   bookTitle: z.string().min(1, "필수 값입니다."),
@@ -62,23 +62,18 @@ export function BookAddForm() {
     mutation.mutate(result);
   };
   return (
-    <form
-      onSubmit={handleSubmit(bookAddSubmit)}
-      className="flex flex-col gap-2"
-    >
-      <FormInputField name="bookTitle" control={control} label="책 제목" />
-      <FormInputField name="author" control={control} label="저자" />
-      <FormInputField name="publisher" control={control} label="출판사" />
-      <RhfPopUpInput
-        label="장르"
-        control={control}
-        name="genre"
-        options={genreList?.data ?? []}
-      />
-      <FormInputField name="ISBN" control={control} label="ISBN (선택)" />
-      <Button type="submit" disabled={mutation.isPending}>
-        {mutation.isPending ? "저장 중..." : "저장"}
-      </Button>
-    </form>
+    <FormPanel>
+      <FormLayout onSubmit={handleSubmit(bookAddSubmit)}>
+        <WishBookFormFields
+          control={control}
+          genreList={genreList?.data ?? []}
+        />
+        <div className="flex justify-end">
+          <Button type="submit" size={"lg"} disabled={mutation.isPending}>
+            {mutation.isPending ? "저장 중..." : "저장"}
+          </Button>
+        </div>
+      </FormLayout>
+    </FormPanel>
   );
 }
