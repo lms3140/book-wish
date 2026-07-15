@@ -22,7 +22,10 @@ export function FormPanel({
 export function FormGrid({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("grid grid-cols-4 gap-4 md:grid-cols-2", className)}
+      className={cn(
+        "grid grid-cols-1 sm:max-md:grid-cols-2 md:grid-cols-3 gap-4",
+        className,
+      )}
       {...props}
     ></div>
   );
