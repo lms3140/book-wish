@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { ScrollArea } from "../ui/scroll-area";
-import { Label } from "../ui/label";
 
 type CustomPopupProps = {
   value?: string;
@@ -16,7 +15,6 @@ export function CustomPopup({
   value,
   onChange,
   className,
-  label,
   options = [],
 }: CustomPopupProps) {
   const [searchText, setSearchText] = useState("");
@@ -37,7 +35,6 @@ export function CustomPopup({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <div className="grid gap-2">
-        <Label className="text-sm">{label}</Label>
         <PopoverTrigger asChild>
           <Input value={selectedValue} readOnly />
         </PopoverTrigger>

@@ -5,6 +5,7 @@ import App from "../App";
 import { Login } from "../feature/Auth/Login";
 import { AuthRouter } from "./AuthRouter";
 import { ErrorPage } from "./ErrorPage";
+import { ChartPage } from "@/feature/Chart/ChartPage";
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,11 @@ export const router = createBrowserRouter([
         path: "/owned",
         element: <OwnedBookPage />,
       },
+      {
+        path: "/chart",
+        errorElement: <ErrorPage />,
+        element: <ChartPage />,
+      },
     ],
   },
   {
@@ -30,6 +36,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     element: <Login />,
   },
+
   // {
   //   path: "/register",
   //   errorElement: <ErrorPage />,

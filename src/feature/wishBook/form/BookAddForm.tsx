@@ -1,13 +1,23 @@
+import { FormLayout, FormPanel } from "@/components/layout/Form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { getOwnedBooks } from "@/feature/ownedBook/api/ownedBooks";
+import { toast } from "@/lib/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { createBook, getWishGenreList } from "../api/books";
-
-import { toast } from "@/lib/toast";
-
-import { FormLayout, FormPanel } from "@/components/layout/Form";
 import { WishBookFormFields } from "./WishBookFormFields";
 
 const bookAddSchema = z.object({
@@ -31,7 +41,9 @@ const init = {
   publisher: "",
   ISBN: "",
 };
+
 export function BookAddForm() {
+  const [pendingBook, setPendingBook] = useState<BookFormType | null>(null);
   const queryClient = useQueryClient();
   const { control, handleSubmit, reset } = useForm<BookFormType>({
     defaultValues: init,
@@ -43,13 +55,18 @@ export function BookAddForm() {
     queryFn: getWishGenreList,
   });
 
+  const { data: ownedBookList } = useQuery({
+    queryKey: ["ownedBookList"],
+    queryFn: getOwnedBooks,
+  });
+
   const mutation = useMutation({
     mutationFn: createBook,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["bookList"],
       });
-      toast.success("등록성공");
+      toast.success("등록 성공");
       reset(init);
     },
     onError: (error) => {
@@ -59,21 +76,61 @@ export function BookAddForm() {
 
   const bookAddSubmit = (data: BookFormType) => {
     const result = bookAddSchema.parse(data);
+    const isDuplicateOwnedBook = ownedBookList?.data.some(
+      (book) => book.bookTitle.trim() === result.bookTitle.trim(),
+    );
+
+    if (isDuplicateOwnedBook) {
+      setPendingBook(result);
+      return;
+    }
+
     mutation.mutate(result);
   };
+
+  const confirmSubmit = () => {
+    if (!pendingBook) return;
+
+    mutation.mutate(pendingBook);
+    setPendingBook(null);
+  };
+
+  const cancelSubmit = () => {
+    setPendingBook(null);
+  };
+
   return (
-    <FormPanel>
-      <FormLayout onSubmit={handleSubmit(bookAddSubmit)}>
+    <FormLayout onSubmit={handleSubmit(bookAddSubmit)}>
+      <FormPanel>
         <WishBookFormFields
           control={control}
           genreList={genreList?.data ?? []}
         />
         <div className="flex justify-end">
           <Button type="submit" size={"lg"} disabled={mutation.isPending}>
-            {mutation.isPending ? "저장 중..." : "저장"}
+            {mutation.isPending ? "저장 중.." : "저장"}
           </Button>
         </div>
-      </FormLayout>
-    </FormPanel>
+      </FormPanel>
+      <AlertDialog
+        open={pendingBook !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingBook(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>이미 소장도서에 있는 책입니다!</AlertDialogTitle>
+            <AlertDialogDescription>
+              위시리스트에 등록하시겠습니까?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelSubmit}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSubmit}>등록</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </FormLayout>
   );
 }
