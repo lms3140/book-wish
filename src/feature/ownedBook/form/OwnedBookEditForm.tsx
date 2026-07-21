@@ -12,7 +12,7 @@ import {
 } from "../api/ownedBooks";
 import { ownedBookSchema } from "../model/ownedBookSchema";
 import { OwnedBookFormFields } from "./OwnedBookFormFields";
-import { FormLayout } from "@/components/layout/Form";
+import { FormLayout, FormPanel } from "@/components/layout/Form";
 
 const init: OwnedBookFormType = {
   bookTitle: "",
@@ -81,7 +81,7 @@ export function OwnedBookEditForm() {
 
   return (
     <FormLayout onSubmit={handleSubmit(onSubmit)}>
-      <FormLayout>
+      <FormPanel>
         <OwnedBookFormFields
           control={control}
           genreList={genreList?.data ?? []}
@@ -91,7 +91,7 @@ export function OwnedBookEditForm() {
             {mutation.isPending ? "수정 중..." : "수정"}
           </Button>
         </div>
-      </FormLayout>
+      </FormPanel>
     </FormLayout>
   );
 }
