@@ -36,6 +36,9 @@ const columns: ColumnDef<OwnedBook>[] = [
   {
     accessorKey: "id",
     header: "id",
+    meta: {
+      label: "ID",
+    },
   },
   {
     accessorKey: "bookTitle",
@@ -50,28 +53,46 @@ const columns: ColumnDef<OwnedBook>[] = [
         </Button>
       );
     },
+    meta: {
+      label: "책 제목",
+    },
   },
   {
     accessorKey: "author",
     header: "저자",
+    meta: {
+      label: "저자",
+    },
   },
   {
     accessorKey: "publisher",
     header: "출판사",
+    meta: {
+      label: "출판사",
+    },
   },
   {
     accessorKey: "genre",
     header: "장르",
+    meta: {
+      label: "장르",
+    },
   },
   {
     accessorKey: "short_review",
     header: "짧은 평",
     cell: ({ row }) => row.original.shortReview ?? "-",
+    meta: {
+      label: "짧은 평",
+    },
   },
   {
     accessorKey: "isbn",
     header: "ISBN",
     cell: ({ row }) => row.original.isbn ?? "-",
+    meta: {
+      label: "ISBN",
+    },
   },
   {
     accessorKey: "readingStatus",
@@ -87,6 +108,9 @@ const columns: ColumnDef<OwnedBook>[] = [
       };
       return statusMap[status] || status;
     },
+    meta: {
+      label: "상태",
+    },
   },
   {
     accessorKey: "purchasedAt",
@@ -94,6 +118,9 @@ const columns: ColumnDef<OwnedBook>[] = [
     cell: ({ row }) => {
       const date = row.original.purchasedAt;
       return date ? new Date(date).toLocaleDateString() : "-";
+    },
+    meta: {
+      label: "구매일",
     },
   },
 ];

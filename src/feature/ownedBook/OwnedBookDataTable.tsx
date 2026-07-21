@@ -145,10 +145,11 @@ export function OwnedBookDataTable<TValue>({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns
+              열 설정
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -165,7 +166,7 @@ export function OwnedBookDataTable<TValue>({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.columnDef.meta?.label ?? column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}

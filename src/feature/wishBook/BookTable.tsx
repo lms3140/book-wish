@@ -38,6 +38,9 @@ const columns: ColumnDef<BookDetail>[] = [
   {
     accessorKey: "id",
     header: "id",
+    meta: {
+      label: "ID",
+    },
   },
   {
     accessorKey: "bookTitle",
@@ -52,23 +55,38 @@ const columns: ColumnDef<BookDetail>[] = [
         </Button>
       );
     },
+    meta: {
+      label: "책 제목",
+    },
   },
   {
     accessorKey: "author",
     header: "저자",
+    meta: {
+      label: "저자",
+    },
   },
   {
     accessorKey: "publisher",
     header: "출판사",
+    meta: {
+      label: "출판사",
+    },
   },
   {
     accessorKey: "genre",
     header: "장르",
+    meta: {
+      label: "장르",
+    },
   },
   {
     accessorKey: "ISBN",
     header: "ISBN",
     cell: ({ row }) => row.original.ISBN ?? "-",
+    meta: {
+      label: "ISBN",
+    },
   },
 ];
 
