@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
-import type { OwnedBook } from "../../bookType";
 import axios from "axios";
+import type { OwnedBook } from "../../bookType";
 
 type OwnedBookResponse<T> = {
   message: string;
@@ -90,8 +90,18 @@ export async function deleteOwnedBooks(ids: string[]) {
 export async function getOwnedGenreList(): Promise<
   OwnedBookResponse<string[]>
 > {
-  const response = await api.get<OwnedBookResponse<string[]>>(
-    "owned-books/genre-list",
-  );
-  return response.data;
+  try {
+    const response = await api.get<OwnedBookResponse<string[]>>(
+      "owned-books/genre-list",
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data.message || "장르 리스트 불러오기를 실패했습니다..",
+        { cause: error },
+      );
+    }
+    throw error;
+  }
 }

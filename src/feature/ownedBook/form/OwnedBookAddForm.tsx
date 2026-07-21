@@ -5,12 +5,24 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import {
   createOwnedBook,
+  getOwnedBooks,
   getOwnedGenreList,
   type OwnedBookFormType,
 } from "../api/ownedBooks";
 import { ownedBookSchema } from "../model/ownedBookSchema";
 import { OwnedBookFormFields } from "./OwnedBookFormFields";
 import { FormLayout, FormPanel } from "@/components/layout/Form";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const init: OwnedBookFormType = {
   bookTitle: "",
@@ -24,6 +36,9 @@ const init: OwnedBookFormType = {
 };
 
 export function OwnedBookAddForm() {
+  const [pendingBook, setPendingBook] = useState<OwnedBookFormType | null>(
+    null,
+  );
   const queryClient = useQueryClient();
   const { control, handleSubmit, reset } = useForm<OwnedBookFormType>({
     defaultValues: init,
@@ -33,6 +48,12 @@ export function OwnedBookAddForm() {
     queryKey: ["ownedBookGenre"],
     queryFn: getOwnedGenreList,
   });
+
+  const { data: bookList } = useQuery({
+    queryKey: ["ownedBookList"],
+    queryFn: getOwnedBooks,
+  });
+
   const mutation = useMutation({
     mutationFn: createOwnedBook,
     onSuccess: () => {
@@ -48,7 +69,25 @@ export function OwnedBookAddForm() {
   });
 
   const onSubmit = (data: OwnedBookFormType) => {
+    const isDuplicate = bookList?.data.some(
+      (book) => book.bookTitle.trim() === data.bookTitle.trim(),
+    );
+    if (isDuplicate) {
+      setPendingBook(data);
+      return;
+    }
+
     mutation.mutate(data);
+  };
+  const confirmSubmit = () => {
+    if (!pendingBook) return;
+
+    mutation.mutate(pendingBook);
+    setPendingBook(null);
+  };
+
+  const cancelSubmit = () => {
+    setPendingBook(null);
   };
 
   return (
@@ -64,6 +103,23 @@ export function OwnedBookAddForm() {
           </Button>
         </div>
       </FormPanel>
+      <AlertDialog
+        open={pendingBook !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingBook(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>중복되는 책 제목이 있습니다!</AlertDialogTitle>
+            <AlertDialogDescription>등록하시겠습니까?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelSubmit}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSubmit}>등록</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </FormLayout>
   );
 }
