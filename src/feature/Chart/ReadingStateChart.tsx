@@ -9,8 +9,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Pie, PieChart } from "recharts";
-import { getReadingStatusCount } from "../ownedBook/api/ownedBooks";
 import { READING_STATUS_LABEL_MAP } from "../ownedBook/model/ownedBookSchema";
+import { getReadingStatusCount } from "./API/chartAPI";
 
 const chartConfig = {
   count: {
@@ -42,13 +42,12 @@ export function ReadingStateChart() {
   const { data, isError, isLoading } = useQuery({
     queryKey: ["readingStatusCard"],
     queryFn: getReadingStatusCount,
-    select: ({ data }) => {
-      const readingStatusCounts = Array.isArray(data) ? data : [data];
-
-      return readingStatusCounts.map((item) => ({
+    select: ({ data, empty }) => {
+      const chartData = data.map((item) => ({
         ...item,
         fill: `var(--color-${item.readingStatus})`,
       }));
+      return { chartData, empty };
     },
   });
 
@@ -62,7 +61,7 @@ export function ReadingStateChart() {
           <div>불러오는 중...</div>
         ) : isError || !data ? (
           <div>독서 상태 데이터를 불러오지 못했습니다.</div>
-        ) : data.length === 0 ? (
+        ) : data.empty ? (
           <div>표시할 독서 상태 데이터가 없습니다.</div>
         ) : (
           <ChartContainer config={chartConfig}>
@@ -73,7 +72,7 @@ export function ReadingStateChart() {
               />
               <Pie
                 innerRadius={45}
-                data={data}
+                data={data.chartData}
                 dataKey="count"
                 nameKey="readingStatus"
               />

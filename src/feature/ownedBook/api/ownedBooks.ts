@@ -26,30 +26,6 @@ export async function getOwnedBooks() {
   }
 }
 
-type GenreCountData = {
-  genre: string;
-  count: number;
-};
-
-export async function getGenreCount() {
-  try {
-    const { data } = await api.get<OwnedBookResponse<GenreCountData[]>>(
-      "/owned-books/genre-counts",
-    );
-    return data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data.message || "장르 개수 불러오기를 실패했습니다.",
-        {
-          cause: error,
-        },
-      );
-    }
-    throw error;
-  }
-}
-
 export async function createOwnedBook(formData: OwnedBookFormType) {
   try {
     const { data } = await api.post<OwnedBookResponse<string>>(
@@ -123,24 +99,6 @@ export async function getOwnedGenreList(): Promise<
     if (axios.isAxiosError(error)) {
       throw new Error(
         error.response?.data.message || "장르 리스트 불러오기를 실패했습니다..",
-        { cause: error },
-      );
-    }
-    throw error;
-  }
-}
-
-type ReadingStatusData = { readingStatus: ReadingStatus; count: number };
-export async function getReadingStatusCount() {
-  try {
-    const response = await api.get<
-      OwnedBookResponse<ReadingStatusData[] | ReadingStatusData>
-    >("owned-books/reading-status-counts");
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data.message || "책읽기갯수 불러오기 실패",
         { cause: error },
       );
     }

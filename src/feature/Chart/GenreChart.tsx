@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { getGenreCount } from "../ownedBook/api/ownedBooks";
 import {
   ChartContainer,
   ChartLegend,
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bar, BarChart, Pie, PieChart, XAxis, YAxis } from "recharts";
+import { getGenreCount } from "./API/chartAPI";
 
 const CHART_COLORS = [
   "var(--color-chart-1)",
@@ -32,7 +32,7 @@ export function GenreChart() {
   const { data, isError, isLoading } = useQuery({
     queryKey: ["ownedBookGenreCounts"],
     queryFn: getGenreCount,
-    select: ({ data }) => {
+    select: ({ data, empty }) => {
       const chartConfig: ChartConfig = {
         count: {
           label: "권수",
@@ -57,6 +57,7 @@ export function GenreChart() {
       return {
         chartData,
         chartConfig,
+        empty,
       };
     },
   });
@@ -80,6 +81,8 @@ export function GenreChart() {
           <div>불러오는 중...</div>
         ) : isError || !data ? (
           <div>장르 데이터를 불러오지 못했습니다.</div>
+        ) : data.empty ? (
+          <div>표시할 장르 데이터가 없습니다.</div>
         ) : chartMode === "pie" ? (
           <ChartContainer config={data.chartConfig}>
             <PieChart>
