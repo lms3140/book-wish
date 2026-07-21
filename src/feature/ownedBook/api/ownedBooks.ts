@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
-import type { OwnedBook, ReadingStatus } from "../../bookType";
 import axios from "axios";
+import type { OwnedBook } from "../../bookType";
 
 type OwnedBookResponse<T> = {
   message: string;
