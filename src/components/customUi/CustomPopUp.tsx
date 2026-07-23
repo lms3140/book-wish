@@ -36,7 +36,7 @@ export function CustomPopup({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <div className="grid gap-2">
         <PopoverTrigger asChild>
-          <Input value={selectedValue} readOnly />
+          <Input value={selectedValue} readOnly placeholder="장르" />
         </PopoverTrigger>
       </div>
       <PopoverContent className={className}>

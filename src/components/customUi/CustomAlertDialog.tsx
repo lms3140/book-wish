@@ -1,3 +1,4 @@
+import type { VariantProps } from "class-variance-authority";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,7 +11,7 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
-import type { ButtonVariant } from "../ui/button-variants";
+import type { buttonVariants } from "../ui/button.tsx";
 
 type CustomAlertDialogProps = {
   disabled: boolean;
@@ -18,7 +19,7 @@ type CustomAlertDialogProps = {
   description: string;
   actionText: string;
   buttonText: string;
-  variant: ButtonVariant;
+  variant: VariantProps<typeof buttonVariants>["variant"];
   actionFn: () => void;
 };
 
