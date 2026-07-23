@@ -55,6 +55,7 @@ export function BookAddForm() {
     queryFn: getWishGenreList,
   });
 
+  // 중복 도서 체크를 위한 쿼리
   const { data: ownedBookList } = useQuery({
     queryKey: ["ownedBookList"],
     queryFn: getOwnedBooks,
@@ -62,10 +63,15 @@ export function BookAddForm() {
 
   const mutation = useMutation({
     mutationFn: createBook,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["bookList"],
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["bookList"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["wishBookGenre"],
+        }),
+      ]);
       toast.success("등록 성공");
       reset(init);
     },

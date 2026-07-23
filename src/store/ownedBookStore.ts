@@ -20,6 +20,7 @@ export const useOwnedBookStore = create<OwnedBookStore>((set) => ({
       ownedBook: {
         ...ownedBook,
         purchasedAt: new Date(ownedBook.purchasedAt),
+        isbn: ownedBook.isbn ?? "",
       },
     }),
 

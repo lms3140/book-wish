@@ -56,10 +56,16 @@ export function OwnedBookAddForm() {
 
   const mutation = useMutation({
     mutationFn: createOwnedBook,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["ownedBookList"],
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["ownedBookList"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["ownedBookGenre"],
+        }),
+      ]);
+
       toast.success("등록 성공");
       reset(init);
     },

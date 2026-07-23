@@ -6,14 +6,24 @@
 
 ---
 
+## 배포 사이트
+
+- URL: [https://book-wish-neon.vercel.app/](https://book-wish-neon.vercel.app/)
+- 아이디: `demo`
+- 비밀번호: `demo1234`
+
+위 데모 계정으로 로그인해 찜 도서, 소장 도서와 통계 기능을 확인할 수 있습니다.
+
+---
+
 ## 주요 화면
 
-| 경로 | 화면 | 제공 기능 |
-| --- | --- | --- |
-| `/login` | 로그인 | 쿠키 기반 로그인 및 인증 오류 표시 |
-| `/` | 찜 도서 | 등록·수정·삭제, 필터, 정렬, 다중 선택, 복사, 구매 처리 |
-| `/owned` | 소장 도서 | 등록·수정·삭제, 독서 상태·구매일·짧은 평 관리 |
-| `/chart` | 통계 | 전체 소장 도서 수, 독서 상태 및 장르별 통계 |
+| 경로     | 화면      | 제공 기능                                              |
+| -------- | --------- | ------------------------------------------------------ |
+| `/login` | 로그인    | 쿠키 기반 로그인 및 인증 오류 표시                     |
+| `/`      | 찜 도서   | 등록·수정·삭제, 필터, 정렬, 다중 선택, 복사, 구매 처리 |
+| `/owned` | 소장 도서 | 등록·수정·삭제, 독서 상태·구매일·짧은 평 관리          |
+| `/chart` | 통계      | 전체 소장 도서 수, 독서 상태 및 장르별 통계            |
 
 인증이 필요한 경로에 접근하면 `/auth/me`를 통해 세션을 확인하며, 인증되지 않은 사용자는 로그인 화면으로 이동합니다.
 
@@ -102,62 +112,21 @@ React Hook Form과 Zod로 입력 상태와 검증 규칙을 관리하고, Zustan
 
 ## 기술 스택
 
-| 분류 | 기술 |
-| --- | --- |
-| Framework | React 19, Vite 8, React Compiler |
-| Language | TypeScript 6 |
-| Styling | Tailwind CSS 4, shadcn/ui, Radix UI |
-| Routing | React Router 7 |
-| Server State | TanStack Query 5 |
-| Client State | Zustand 5 |
-| Table | TanStack Table 8 |
-| Form / Validation | React Hook Form, Zod |
-| API | Axios |
-| Charts | Recharts |
-| Date | React DayPicker, date-fns, Day.js |
-| Feedback | React Toastify |
-| Icons | Hugeicons, Lucide React |
-
----
-
-## 시작하기
-
-### 요구 사항
-
-- Node.js `20.19+` 또는 `22.12+`
-- npm
-- Book Wish 백엔드 API 서버
-
-이 저장소는 프론트엔드 애플리케이션입니다. 로그인과 도서 데이터 기능을 사용하려면 별도의 백엔드 서버가 실행 중이어야 합니다.
-
-### 설치 및 실행
-
-```bash
-npm ci
-```
-
-프로젝트 루트에 `.env` 파일을 만들고 API 주소를 설정합니다.
-
-```env
-VITE_API_BASE_URL=http://your-api-server
-```
-
-개발 서버를 실행합니다.
-
-```bash
-npm run dev
-```
-
-API 요청에는 `withCredentials: true`가 적용되어 있습니다. 프론트엔드와 API의 출처가 다르다면 백엔드 CORS 설정에서 프론트엔드 출처와 Credential 요청을 허용해야 합니다.
-
-### 스크립트
-
-| 명령어 | 설명 |
-| --- | --- |
-| `npm run dev` | Vite 개발 서버 실행 |
-| `npm run build` | TypeScript 검사 후 프로덕션 빌드 생성 |
-| `npm run lint` | 전체 소스 ESLint 검사 |
-| `npm run preview` | 빌드 결과 로컬 미리보기 |
+| 분류              | 기술                                |
+| ----------------- | ----------------------------------- |
+| Framework         | React 19, Vite 8, React Compiler    |
+| Language          | TypeScript 6                        |
+| Styling           | Tailwind CSS 4, shadcn/ui, Radix UI |
+| Routing           | React Router 7                      |
+| Server State      | TanStack Query 5                    |
+| Client State      | Zustand 5                           |
+| Table             | TanStack Table 8                    |
+| Form / Validation | React Hook Form, Zod                |
+| API               | Axios                               |
+| Charts            | Recharts                            |
+| Date              | React DayPicker, date-fns, Day.js   |
+| Feedback          | React Toastify                      |
+| Icons             | Hugeicons, Lucide React             |
 
 ---
 
@@ -216,14 +185,6 @@ src/
 ### 테이블 필터 분리 후 입력이 갱신되지 않음
 
 TanStack Table 객체의 안정적인 참조와 React Compiler의 메모이제이션이 맞물려 분리된 UI가 다시 렌더링되지 않았습니다. 테이블 상태에 강하게 결합된 UI를 원래 컴포넌트 내부로 되돌려 동작의 일관성을 확보했습니다.
-
----
-
-## 배포
-
-Vercel SPA 배포를 위한 rewrite 설정이 포함되어 있습니다. 모든 경로를 `index.html`로 전달하므로 브라우저에서 하위 경로를 직접 열거나 새로고침해도 React Router가 화면을 처리합니다.
-
-배포 환경에도 `VITE_API_BASE_URL` 환경 변수를 등록해야 합니다.
 
 ---
 
