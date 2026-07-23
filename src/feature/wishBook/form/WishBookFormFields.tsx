@@ -1,6 +1,6 @@
 import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
 import { FormGrid } from "@/components/layout/Form";
-import { FormInputField } from "@/components/ui/FormInputField";
+import { FormInputField } from "@/components/customUi/FormInputField";
 import type { Control, FieldValues } from "react-hook-form";
 import type { BookFormType } from "./BookAddForm";
 

@@ -1,11 +1,18 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/lib/api";
 import { useBookStore } from "@/store/bookStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, CircleAlert, RotateCcw } from "lucide-react";
 import type { BookDetail, BookResponse } from "../bookType";
 import { BookDataTable } from "./BookDataTable";
 import { deleteBooks, purchaseWishBook } from "./api/books";
@@ -38,6 +45,9 @@ const columns: ColumnDef<BookDetail>[] = [
   {
     accessorKey: "id",
     header: "id",
+    meta: {
+      label: "ID",
+    },
   },
   {
     accessorKey: "bookTitle",
@@ -52,30 +62,45 @@ const columns: ColumnDef<BookDetail>[] = [
         </Button>
       );
     },
+    meta: {
+      label: "책 제목",
+    },
   },
   {
     accessorKey: "author",
     header: "저자",
+    meta: {
+      label: "저자",
+    },
   },
   {
     accessorKey: "publisher",
     header: "출판사",
+    meta: {
+      label: "출판사",
+    },
   },
   {
     accessorKey: "genre",
     header: "장르",
+    meta: {
+      label: "장르",
+    },
   },
   {
     accessorKey: "ISBN",
     header: "ISBN",
     cell: ({ row }) => row.original.ISBN ?? "-",
+    meta: {
+      label: "ISBN",
+    },
   },
 ];
 
 export function BookTable() {
   const setBook = useBookStore((state) => state.setBook);
   const queryClient = useQueryClient();
-  const { data, isError } = useQuery({
+  const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ["bookList"],
     queryFn: async (): Promise<BookResponse> => {
       const { data } = await api.get<BookResponse>("/books");
@@ -107,13 +132,38 @@ export function BookTable() {
 
   if (isError) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>오류가 발생</CardTitle>
+      <Card className="min-h-64 justify-center py-8" role="alert">
+        <CardHeader className="items-center gap-3 text-center">
+          <div className="flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <CircleAlert className="size-5" aria-hidden="true" />
+          </div>
+          <CardTitle className="text-base">
+            도서 목록을 불러오지 못했습니다
+          </CardTitle>
+          <CardDescription className="max-w-md">
+            네트워크 상태를 확인한 후 다시 시도해주세요. 문제가 계속되면 잠시
+            후 다시 이용해주세요.
+          </CardDescription>
         </CardHeader>
+        <CardFooter className="justify-center">
+          <Button
+            variant="outline"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+          >
+            <RotateCcw
+              className={isFetching ? "animate-spin" : undefined}
+              aria-hidden="true"
+            />
+            <span aria-live="polite">
+              {isFetching ? "다시 불러오는 중..." : "다시 시도"}
+            </span>
+          </Button>
+        </CardFooter>
       </Card>
     );
   }
+
   return (
     <>
       <Card className="justify-between">

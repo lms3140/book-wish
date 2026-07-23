@@ -46,7 +46,7 @@ export function FormInputField<T extends FieldValues>({
             id={id}
             aria-invalid={fieldState.invalid}
             autoComplete={autoComplete}
-            placeholder={placeholder}
+            placeholder={placeholder ?? label}
             type={type}
             value={field.value}
           />

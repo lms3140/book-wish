@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FormInputField } from "@/components/ui/FormInputField";
+import { FormInputField } from "@/components/customUi/FormInputField";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { zodResolver } from "@hookform/resolvers/zod";

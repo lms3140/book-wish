@@ -1,6 +1,6 @@
 import { logout } from "@/feature/Auth/api/authAPI";
 import { Button } from "../ui/button";
-import { ThemeToggle } from "../ui/ThemeToggle";
+import { ThemeToggle } from "../customUi/ThemeToggle";
 import { useNavigate } from "react-router";
 import {
   AlertDialog,
@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
+import { DoorOpen } from "lucide-react";
 
 export function TopbarActions() {
   const navigate = useNavigate();
@@ -26,7 +27,10 @@ export function TopbarActions() {
       <ThemeToggle />
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="outline">로그아웃</Button>
+          <Button variant="destructive">
+            <DoorOpen />
+            로그아웃
+          </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>

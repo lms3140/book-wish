@@ -2,7 +2,7 @@ import { DatePicker } from "@/components/customUi/DatePicker";
 import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
 import { FormGrid } from "@/components/layout/Form";
 import { Field, FieldLabel } from "@/components/ui/field";
-import { FormInputField } from "@/components/ui/FormInputField";
+import { FormInputField } from "@/components/customUi/FormInputField";
 import {
   Select,
   SelectContent,

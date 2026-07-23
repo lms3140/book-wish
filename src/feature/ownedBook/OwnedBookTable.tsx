@@ -1,10 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useOwnedBookStore } from "@/store/ownedBookStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, CircleAlert, RotateCcw } from "lucide-react";
 import type { OwnedBook } from "../bookType";
 import { OwnedBookDataTable } from "./OwnedBookDataTable";
 import { toast } from "@/lib/toast";
@@ -36,6 +43,9 @@ const columns: ColumnDef<OwnedBook>[] = [
   {
     accessorKey: "id",
     header: "id",
+    meta: {
+      label: "ID",
+    },
   },
   {
     accessorKey: "bookTitle",
@@ -50,28 +60,46 @@ const columns: ColumnDef<OwnedBook>[] = [
         </Button>
       );
     },
+    meta: {
+      label: "책 제목",
+    },
   },
   {
     accessorKey: "author",
     header: "저자",
+    meta: {
+      label: "저자",
+    },
   },
   {
     accessorKey: "publisher",
     header: "출판사",
+    meta: {
+      label: "출판사",
+    },
   },
   {
     accessorKey: "genre",
     header: "장르",
+    meta: {
+      label: "장르",
+    },
   },
   {
     accessorKey: "short_review",
     header: "짧은 평",
     cell: ({ row }) => row.original.shortReview ?? "-",
+    meta: {
+      label: "짧은 평",
+    },
   },
   {
     accessorKey: "isbn",
     header: "ISBN",
     cell: ({ row }) => row.original.isbn ?? "-",
+    meta: {
+      label: "ISBN",
+    },
   },
   {
     accessorKey: "readingStatus",
@@ -87,6 +115,9 @@ const columns: ColumnDef<OwnedBook>[] = [
       };
       return statusMap[status] || status;
     },
+    meta: {
+      label: "상태",
+    },
   },
   {
     accessorKey: "purchasedAt",
@@ -95,6 +126,9 @@ const columns: ColumnDef<OwnedBook>[] = [
       const date = row.original.purchasedAt;
       return date ? new Date(date).toLocaleDateString() : "-";
     },
+    meta: {
+      label: "구매일",
+    },
   },
 ];
 
@@ -102,7 +136,7 @@ export function OwnedBookTable() {
   const setBook = useOwnedBookStore((state) => state.setOwnedBook);
   const queryClient = useQueryClient();
 
-  const { data, isError } = useQuery({
+  const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ["ownedBookList"],
     queryFn: getOwnedBooks,
   });
@@ -120,10 +154,34 @@ export function OwnedBookTable() {
 
   if (isError) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>오류가 발생했습니다.</CardTitle>
+      <Card className="min-h-64 justify-center py-8" role="alert">
+        <CardHeader className="items-center gap-3 text-center">
+          <div className="flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <CircleAlert className="size-5" aria-hidden="true" />
+          </div>
+          <CardTitle className="text-base">
+            소장 도서 목록을 불러오지 못했습니다
+          </CardTitle>
+          <CardDescription className="max-w-md">
+            네트워크 상태를 확인한 후 다시 시도해주세요. 문제가 계속되면 잠시
+            후 다시 이용해주세요.
+          </CardDescription>
         </CardHeader>
+        <CardFooter className="justify-center">
+          <Button
+            variant="outline"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+          >
+            <RotateCcw
+              className={isFetching ? "animate-spin" : undefined}
+              aria-hidden="true"
+            />
+            <span aria-live="polite">
+              {isFetching ? "다시 불러오는 중..." : "다시 시도"}
+            </span>
+          </Button>
+        </CardFooter>
       </Card>
     );
   }

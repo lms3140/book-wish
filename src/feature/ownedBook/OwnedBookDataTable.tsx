@@ -101,76 +101,80 @@ export function OwnedBookDataTable<TValue>({
 
   return (
     <div>
-      <div className="flex items-center gap-2 py-4">
-        <Input
-          placeholder="책 제목 필터"
-          value={
-            (table.getColumn("bookTitle")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn("bookTitle")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        <Input
-          placeholder="장르 필터"
-          value={(table.getColumn("genre")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("genre")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="destructive"
-              disabled={table.getSelectedRowModel().rows.length === 0}
-            >
-              삭제
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>도서 삭제</AlertDialogTitle>
-              <AlertDialogDescription>
-                선택한 {table.getSelectedRowModel().rows.length}권의 책을
-                삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={handleDelete}>
+      <div className="flex flex-wrap items-center gap-3 py-4">
+        <div className="flex flex-1 flex-wrap gap-2">
+          <Input
+            placeholder="책 제목 필터"
+            value={
+              (table.getColumn("bookTitle")?.getFilterValue() as string) ?? ""
+            }
+            onChange={(event) =>
+              table.getColumn("bookTitle")?.setFilterValue(event.target.value)
+            }
+            className="min-w-56 flex-1 sm:max-w-sm"
+          />
+          <Input
+            placeholder="장르 필터"
+            value={(table.getColumn("genre")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("genre")?.setFilterValue(event.target.value)
+            }
+            className="min-w-56 flex-1 sm:max-w-sm"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                disabled={table.getSelectedRowModel().rows.length === 0}
+              >
                 삭제
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>도서 삭제</AlertDialogTitle>
+                <AlertDialogDescription>
+                  선택한 {table.getSelectedRowModel().rows.length}권의 책을
+                  삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>취소</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                  삭제
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">열 설정</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.columnDef.meta?.label ?? column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <div className="overflow-hidden rounded-md border">
         <Table>
@@ -241,7 +245,7 @@ export function OwnedBookDataTable<TValue>({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Previous
+          이전
         </Button>
         <Button
           variant="outline"
@@ -249,7 +253,7 @@ export function OwnedBookDataTable<TValue>({
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Next
+          다음
         </Button>
       </div>
     </div>
