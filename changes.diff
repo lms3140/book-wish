@@ -1,0 +1,3340 @@
+diff --git a/README.md b/README.md
+index ec968fb..ab7e3b1 100644
+--- a/README.md
++++ b/README.md
+@@ -1,145 +1,190 @@
+ # Book Wish
+ 
+-책 위시리스트를 등록하고 관리하는 MVP 웹 애플리케이션입니다.
++읽고 싶은 책을 찜하고, 구매한 책의 독서 상태와 감상을 관리하는 웹 애플리케이션입니다.
+ 
+-로그인한 사용자가 읽고 싶은 책을 목록으로 관리하고, 제목·장르 기준으로 필터링하며, 선택한 책 목록을 복사하거나 삭제할 수 있도록 구현했습니다.
+-
+-단순 CRUD 구현에 그치지 않고, 인증 세션 유지, 비동기 데이터 동기화, 사용자 인지 부하 개선에 중점을 두고 개발했습니다.
++찜 도서 관리에서 끝나지 않고 구매한 책을 소장 도서로 전환한 뒤, 독서 상태와 장르별 통계를 확인할 수 있도록 구성했습니다. 인증 세션 유지, 서버 데이터 동기화, 반응형 테이블, 오류 복구 UI처럼 실제 사용 중 발생할 수 있는 문제를 다루는 데 중점을 두었습니다.
+ 
+ ---
+ 
+-## 주요 구현 포인트
++## 배포 사이트
+ 
+-### 1. Refresh Token 경쟁 상태 해결
++- URL: [https://book-wish-neon.vercel.app/](https://book-wish-neon.vercel.app/)
++- 아이디: `demo`
++- 비밀번호: `demo1234`
+ 
+-Access Token 만료 시 여러 API 요청이 동시에 401 응답을 받을 경우, 각각 Refresh 요청을 보내면서 세션이 꼬이는 문제가 발생했습니다.
++위 데모 계정으로 로그인해 찜 도서, 소장 도서와 통계 기능을 확인할 수 있습니다.
+ 
+-Refresh Token Rotation 방식에서는 첫 번째 Refresh 요청이 성공하면 기존 Refresh Token이 폐기되기 때문에, 동시에 실행된 다른 Refresh 요청은 실패할 수 있습니다.
++---
+ 
+-이를 해결하기 위해 Axios 인터셉터 모듈 스코프에서 하나의 `refreshPromise`를 공유하도록 구현했습니다. 진행 중인 Refresh 요청이 있다면 새로운 Refresh 요청을 보내지 않고 기존 Promise를 기다리도록 처리하여, 토큰 갱신 요청이 한 번만 실행되도록 개선했습니다.
++## 주요 화면
+ 
+-### 2. TanStack Query 기반 데이터 동기화
++| 경로     | 화면      | 제공 기능                                              |
++| -------- | --------- | ------------------------------------------------------ |
++| `/login` | 로그인    | 쿠키 기반 로그인 및 인증 오류 표시                     |
++| `/`      | 찜 도서   | 등록·수정·삭제, 필터, 정렬, 다중 선택, 복사, 구매 처리 |
++| `/owned` | 소장 도서 | 등록·수정·삭제, 독서 상태·구매일·짧은 평 관리          |
++| `/chart` | 통계      | 전체 소장 도서 수, 독서 상태 및 장르별 통계            |
+ 
+-초기에는 도서 등록·수정 이후 테이블 데이터가 즉시 갱신되지 않는 문제가 있었습니다.
++인증이 필요한 경로에 접근하면 `/auth/me`를 통해 세션을 확인하며, 인증되지 않은 사용자는 로그인 화면으로 이동합니다.
+ 
+-비동기 요청 완료 시점을 명확히 제어하기 위해 생성·수정·삭제 로직을 `useMutation` 기반으로 전환했습니다. 이후 `onSuccess`에서 `invalidateQueries`를 호출하여 서버 데이터 변경 이후 테이블 데이터가 자동으로 갱신되도록 개선했습니다.
++---
+ 
+-### 3. 사용자 인지 부하를 줄이는 UI 개선
++## 주요 기능
+ 
+-등록과 수정 폼이 같은 사이드 패널에서 동작하면서, 사용자가 현재 어떤 작업을 수행 중인지 명확히 인지하기 어려운 문제가 있었습니다.
++### 찜 도서 관리
+ 
+-작업 모드에 따라 필요한 UI만 노출되도록 조건부 렌더링을 적용했습니다. 또한 등록/수정 상태에 따라 타이틀 색상과 버튼 문구를 다르게 표시하여 사용자가 현재 작업 상태를 쉽게 이해할 수 있도록 개선했습니다.
++- 도서 등록, 상세 조회, 수정, 단일·다중 삭제
++- 제목과 장르를 기준으로 실시간 필터링
++- 제목 정렬, 페이지 이동, 표시할 열 선택
++- 체크박스로 선택한 도서 정보 클립보드 복사
++- 선택한 찜 도서를 일괄 구매 처리
++- 등록·수정·상세 조회를 하나의 사이드 패널에서 제공
+ 
+----
++### 소장 도서 및 독서 기록
+ 
+-## 주요 기능
++- 소장 도서 직접 등록 및 찜 도서 구매 처리 연동
++- 독서 상태 관리
++  - 소장 중
++  - 읽는 중
++  - 완독
++  - 읽기 보류됨
++  - 읽던 중 중단
++- 구매일, ISBN, 짧은 평 기록
++- 제목·장르 필터, 정렬, 열 표시 설정, 다중 삭제
+ 
+-- 로그인 기반 접근 제어
+-- 도서 등록, 상세 조회, 수정, 삭제
+-- 테이블 기반 도서 목록 관리
+-- 제목·장르 기준 필터링
+-- 테이블 컬럼 정렬
+-- 단일 삭제 및 다중 선택 삭제
+-- 선택한 도서 목록 클립보드 복사
+-- 등록/수정/상세 조회를 처리하는 사이드 패널
+-- 라이트/다크 테마 지원
+-- Access Token 만료 시 Refresh Token을 통한 자동 재발급 및 요청 재시도
++### 통계
+ 
+----
++- 등록한 전체 소장 도서 수 표시
++- 독서 상태별 도서 수 원형 차트
++- 장르별 보유 도서 수 원형·막대 차트 전환
++- 데이터가 없거나 조회에 실패한 경우 별도 상태 표시
+ 
+-## 기술 스택
++### 사용자 경험
+ 
+-| 분류             | 기술                      |
+-| ---------------- | ------------------------- |
+-| Framework        | React 19, Vite 8          |
+-| Language         | TypeScript                |
+-| Styling          | Tailwind CSS 4, shadcn/ui |
+-| State Management | Zustand 5                 |
+-| Server State     | TanStack Query v5         |
+-| Table            | TanStack Table v8         |
+-| Form             | React Hook Form, Zod      |
+-| API              | Axios                     |
+-| Icons            | Hugeicons, Lucide React   |
++- 모바일 폭에서도 줄바꿈되는 반응형 테이블 도구 모음
++- 등록·수정 모드에 따른 사이드 패널 강조와 버튼 문구 변경
++- 선택된 행과 현재 편집 중인 행 시각적 구분
++- 목록 조회 실패 시 원인을 안내하고 직접 다시 시도할 수 있는 오류 화면
++- Toast 기반 작업 성공·실패 피드백
++- 로컬 스토리지에 유지되는 라이트·다크 테마
++- 파괴적인 작업 전 확인 다이얼로그 제공
+ 
+ ---
+ 
+-## 프로젝트 구조
++## 최근 개선 사항
+ 
+-```txt
+-src/
+-  components/         # 공통 UI 컴포넌트
+-  feature/
+-    Auth/             # 로그인 및 인증 로직
+-    book/             # 도서 목록, 테이블, 등록/수정/삭제 기능
+-    BookSidePanel.tsx # 도서 상세/등록/수정 사이드 패널
+-  lib/
+-    api.ts            # Axios 설정 및 토큰 갱신 인터셉터
+-    utils.ts          # 공통 유틸리티
+-  router/             # React Router 설정 및 Auth Guard
+-  store/              # Zustand 전역 상태 관리
+-```
++- 찜 도서와 소장 도서 테이블 도구 모음을 반응형 레이아웃으로 개선
++- 페이지 이동 버튼과 주요 테이블 문구를 한국어로 통일
++- 목록 조회 오류 화면에 재시도 버튼과 진행 상태 추가
++- 공통 입력 필드와 테마 토글을 `customUi` 영역으로 이동해 컴포넌트 책임 정리
++- 버튼 variant 정의를 `button.tsx`로 통합
++- 테마 토글을 스위치 UI로 변경하고 전역 버튼에 포인터 커서 적용
++- 달력 컴포넌트의 버튼 variant import와 코드 포맷 정리
++- 사용하지 않던 별도 도서 필터 컴포넌트를 제거하고 테이블 내부 상태와 함께 관리
+ 
+ ---
+ 
+-## 트러블슈팅
++## 주요 구현 포인트
++
++### Refresh Token 경쟁 상태 제어
+ 
+-### 1. 비동기 작업 후 데이터 갱신 누락
++Access Token이 만료된 상태에서 여러 요청이 동시에 `401` 응답을 받으면 Refresh 요청 역시 여러 번 발생할 수 있습니다. Refresh Token Rotation 환경에서는 첫 갱신 후 기존 토큰이 폐기되므로 나머지 요청이 실패할 가능성이 있습니다.
+ 
+-**문제**
++Axios 인터셉터 모듈에서 하나의 `refreshPromise`를 공유하여 이미 토큰 갱신이 진행 중일 때는 추가 요청을 만들지 않고 같은 Promise를 기다리도록 구현했습니다. 갱신이 끝나면 실패했던 요청을 한 번만 재시도하고, 갱신 자체가 실패하면 인증 상태를 해제합니다.
+ 
+-도서 등록 또는 수정 이후 테이블 데이터가 즉시 갱신되지 않는 문제가 있었습니다.
++### TanStack Query 기반 서버 상태 동기화
+ 
+-**원인**
++도서 생성·수정·삭제·구매 처리를 `useMutation`으로 관리합니다. 서버 작업이 성공한 뒤 관련 Query Key를 무효화하여 목록을 다시 조회하므로 클라이언트 상태를 수동으로 맞추지 않아도 최신 데이터가 화면에 반영됩니다.
+ 
+-비동기 요청이 완료되기 전에 쿼리 무효화가 실행되거나, 요청 성공 이후 데이터 갱신 흐름이 명확히 분리되어 있지 않았습니다.
++목록 조회에 실패하면 오류 안내와 재시도 버튼을 표시합니다. 재요청 중에는 버튼을 비활성화하고 아이콘과 문구를 변경해 현재 상태를 알 수 있도록 했습니다.
+ 
+-**해결**
++### TanStack Table과 React Compiler 호환성 대응
+ 
+-도서 생성·수정·삭제 로직을 TanStack Query의 `useMutation` 기반으로 전환했습니다. 이후 `onSuccess` 콜백에서 `invalidateQueries`를 호출하여 서버 작업이 성공한 뒤 테이블 데이터가 다시 조회되도록 개선했습니다.
++테이블 객체는 내부 상태가 바뀌어도 같은 참조를 유지합니다. 필터 UI를 별도 컴포넌트로 분리해 `table` 객체만 전달했을 때 React Compiler가 내부 상태 변경을 렌더링 의존성으로 추적하지 못해 입력과 열 표시 설정이 갱신되지 않는 문제가 있었습니다.
+ 
+----
++`"use no memo"`로 우회하는 대신 필터와 열 설정 UI를 테이블 컴포넌트 내부에 유지했습니다. 반복 코드 감소보다 상태 변경의 예측 가능성과 현재 컴파일러 최적화를 우선한 결정입니다. 자세한 기록은 [UI 개선 개발일지](./docs/%5B개발일지%20-%2020260722%5D%20ui%20개선%202.md)에서 확인할 수 있습니다.
+ 
+-### 2. 동시 401 에러와 Refresh Token 경쟁 상태
++### 폼과 UI 상태 분리
+ 
+-**문제**
++React Hook Form과 Zod로 입력 상태와 검증 규칙을 관리하고, Zustand는 선택된 도서·사이드 패널 모드·인증·테마처럼 화면 전반에서 공유하는 상태에 사용합니다. 서버에서 가져온 데이터는 TanStack Query가 담당하도록 역할을 구분했습니다.
+ 
+-여러 API 요청이 동시에 401 응답을 받을 경우, 각 요청이 개별적으로 Refresh Token 요청을 보내면서 세션이 만료되거나 요청 흐름이 꼬이는 문제가 발생했습니다.
++---
+ 
+-**원인**
++## 기술 스택
+ 
+-Refresh Token Rotation 방식에서는 Refresh 요청이 성공하면 기존 Refresh Token이 폐기됩니다. 따라서 여러 Refresh 요청이 동시에 발생하면, 첫 번째 요청 이후 나머지 요청은 이미 폐기된 토큰으로 재요청하게 됩니다.
++| 분류              | 기술                                |
++| ----------------- | ----------------------------------- |
++| Framework         | React 19, Vite 8, React Compiler    |
++| Language          | TypeScript 6                        |
++| Styling           | Tailwind CSS 4, shadcn/ui, Radix UI |
++| Routing           | React Router 7                      |
++| Server State      | TanStack Query 5                    |
++| Client State      | Zustand 5                           |
++| Table             | TanStack Table 8                    |
++| Form / Validation | React Hook Form, Zod                |
++| API               | Axios                               |
++| Charts            | Recharts                            |
++| Date              | React DayPicker, date-fns, Day.js   |
++| Feedback          | React Toastify                      |
++| Icons             | Hugeicons, Lucide React             |
+ 
+-**해결**
++---
+ 
+-Axios 인터셉터 내부에서 `refreshPromise`를 모듈 스코프 변수로 관리했습니다. 이미 Refresh 요청이 진행 중이라면 새로운 Refresh 요청을 보내지 않고 기존 Promise를 기다리도록 처리했습니다.
++## 프로젝트 구조
+ 
+-이를 통해 Refresh 요청을 한 번만 수행하고, 토큰 갱신이 완료된 뒤 실패했던 요청을 재시도하도록 개선했습니다.
++```txt
++src/
++  components/
++    customUi/          # 프로젝트 요구사항에 맞춘 조합형 UI
++    header/            # 화면 내비게이션과 상단 액션
++    layout/            # 페이지 및 폼 레이아웃
++    ui/                # shadcn/ui 기반 기본 컴포넌트
++  feature/
++    Auth/              # 로그인과 인증 API
++    Chart/             # 소장 도서 통계 카드와 차트
++    ownedBook/         # 소장 도서 목록, 폼, API, 스키마
++    wishBook/          # 찜 도서 목록, 폼, API, 사이드 패널
++    bookType.ts        # 공통 도서 도메인 타입
++  lib/
++    api.ts             # Axios 인스턴스와 토큰 갱신 인터셉터
++    toast.ts           # 공통 Toast 헬퍼
++    utils.ts           # 스타일 클래스 결합 유틸리티
++  router/              # 라우트, 인증 가드, 로딩·오류 화면
++  store/               # 인증, 도서 선택, 패널, 테마 상태
++  types/               # 라이브러리 타입 확장
++```
++
++각 도서 기능은 API, 폼, 모델과 화면 컴포넌트를 기능 단위로 가까이 배치합니다. 재사용 가능한 기본 UI와 도메인 로직이 포함된 컴포넌트를 분리해 변경 범위를 명확히 했습니다.
+ 
+ ---
+ 
+-### 3. 사용자 인지 부하를 줄이는 UI/UX 개선
++## 데이터 처리 흐름
++
++1. 라우터 진입 시 `/auth/me`로 쿠키 기반 세션을 확인합니다.
++2. 각 페이지는 TanStack Query로 찜 도서·소장 도서·통계 데이터를 조회합니다.
++3. 폼 제출과 삭제·구매 작업은 Mutation으로 서버에 반영합니다.
++4. 성공한 Mutation은 관련 Query를 무효화해 최신 데이터를 다시 가져옵니다.
++5. 인증 만료로 `401`이 발생하면 Axios 인터셉터가 토큰 갱신 후 원래 요청을 재시도합니다.
+ 
+-**문제**
++---
+ 
+-등록과 수정 기능이 같은 사이드 패널에서 동작하면서 사용자가 현재 작업 상태를 직관적으로 파악하기 어려웠습니다.
++## 트러블슈팅 요약
+ 
+-**원인**
++### 비동기 작업 이후 목록이 갱신되지 않음
+ 
+-등록/수정 모드의 UI 차이가 크지 않아 사용자가 현재 어떤 작업을 하고 있는지 추가적인 학습이 필요했습니다.
++서버 요청 완료 전에 목록 갱신이 실행되던 흐름을 `useMutation`의 `onSuccess`와 `invalidateQueries` 조합으로 변경했습니다. 서버 작업의 성공 시점과 다시 조회하는 시점을 명확히 분리했습니다.
+ 
+-**해결**
++### 동시 401 응답으로 Refresh 요청이 중복됨
+ 
+-작업 모드에 따라 필요한 UI 요소만 노출되도록 조건부 렌더링을 적용했습니다. 또한 사이드 패널의 타이틀 색상과 버튼 문구를 작업 상태에 맞게 변경하여 등록/수정 흐름을 더 명확하게 구분했습니다.
++모든 실패 요청이 각자 토큰 갱신을 시작하지 않도록 모듈 스코프의 `refreshPromise`를 공유했습니다. 동시에 실패한 요청은 하나의 갱신 결과를 기다린 뒤 순서대로 재시도합니다.
+ 
+----
++### 등록과 수정 상태를 구분하기 어려움
+ 
+-## 최근 개선 사항
++사이드 패널의 모드에 따라 제목 색상, 버튼 문구와 노출할 액션을 변경했습니다. 현재 작업 중인 테이블 행에도 모드별 강조 스타일을 적용했습니다.
++
++### 테이블 필터 분리 후 입력이 갱신되지 않음
+ 
+-- `useMutation` 도입으로 생성·수정·삭제 후 데이터 동기화 흐름 개선
+-- 단일 삭제 및 다중 선택 삭제 기능 추가
+-- 사이드 패널 등록/수정 상태 구분 개선
+-- API Base URL 환경 변수 분리
+-- 선택 도서 클립보드 복사 기능 구현
++TanStack Table 객체의 안정적인 참조와 React Compiler의 메모이제이션이 맞물려 분리된 UI가 다시 렌더링되지 않았습니다. 테이블 상태에 강하게 결합된 UI를 원래 컴포넌트 내부로 되돌려 동작의 일관성을 확보했습니다.
+ 
+ ---
+ 
+diff --git a/changes.diff b/changes.diff
+deleted file mode 100644
+index b4661a3..0000000
+--- a/changes.diff
++++ /dev/null
+@@ -1,1697 +0,0 @@
+-diff --git a/package-lock.json b/package-lock.json
+-index 6b994bf..e9ac404 100644
+---- a/package-lock.json
+-+++ b/package-lock.json
+-@@ -28,6 +28,7 @@
+-         "react-hook-form": "^7.74.0",
+-         "react-router": "^7.15.0",
+-         "react-toastify": "^11.1.0",
+-+        "recharts": "^3.8.0",
+-         "shadcn": "^4.5.0",
+-         "tailwind-merge": "^3.5.0",
+-         "tailwindcss": "^4.2.4",
+-@@ -2778,6 +2779,42 @@
+-       "integrity": "sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==",
+-       "license": "MIT"
+-     },
+-+    "node_modules/@reduxjs/toolkit": {
+-+      "version": "2.12.0",
+-+      "resolved": "https://registry.npmjs.org/@reduxjs/toolkit/-/toolkit-2.12.0.tgz",
+-+      "integrity": "sha512-KiT+RzZbp6mQET+Mg+h2c97+9j1sNflUxQkIHI7Yuzf6Peu+OYpmkn6nbHWmLLWj+1ZODUJFwGZ7gx3L9R9EOw==",
+-+      "license": "MIT",
+-+      "dependencies": {
+-+        "@standard-schema/spec": "^1.0.0",
+-+        "@standard-schema/utils": "^0.3.0",
+-+        "immer": "^11.0.0",
+-+        "redux": "^5.0.1",
+-+        "redux-thunk": "^3.1.0",
+-+        "reselect": "^5.1.0"
+-+      },
+-+      "peerDependencies": {
+-+        "react": "^16.9.0 || ^17.0.0 || ^18 || ^19",
+-+        "react-redux": "^7.2.1 || ^8.1.3 || ^9.0.0"
+-+      },
+-+      "peerDependenciesMeta": {
+-+        "react": {
+-+          "optional": true
+-+        },
+-+        "react-redux": {
+-+          "optional": true
+-+        }
+-+      }
+-+    },
+-+    "node_modules/@reduxjs/toolkit/node_modules/immer": {
+-+      "version": "11.1.15",
+-+      "resolved": "https://registry.npmjs.org/immer/-/immer-11.1.15.tgz",
+-+      "integrity": "sha512-VrNANlmnWQnh5COXIIOQXM9oOJw7naGKlBT74ZOOR6lpVXc3gFEu9FJLDFcpCJ2j+NWr8TIwtWD//T6ZX6TKiQ==",
+-+      "license": "MIT",
+-+      "funding": {
+-+        "type": "opencollective",
+-+        "url": "https://opencollective.com/immer"
+-+      }
+-+    },
+-     "node_modules/@rolldown/binding-android-arm64": {
+-       "version": "1.0.0-rc.17",
+-       "resolved": "https://registry.npmjs.org/@rolldown/binding-android-arm64/-/binding-android-arm64-1.0.0-rc.17.tgz",
+-@@ -3076,6 +3113,12 @@
+-         "url": "https://github.com/sponsors/sindresorhus"
+-       }
+-     },
+-+    "node_modules/@standard-schema/spec": {
+-+      "version": "1.1.0",
+-+      "resolved": "https://registry.npmjs.org/@standard-schema/spec/-/spec-1.1.0.tgz",
+-+      "integrity": "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==",
+-+      "license": "MIT"
+-+    },
+-     "node_modules/@standard-schema/utils": {
+-       "version": "0.3.0",
+-       "resolved": "https://registry.npmjs.org/@standard-schema/utils/-/utils-0.3.0.tgz",
+-@@ -3464,6 +3507,69 @@
+-         "@babel/types": "^7.28.2"
+-       }
+-     },
+-+    "node_modules/@types/d3-array": {
+-+      "version": "3.2.2",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-array/-/d3-array-3.2.2.tgz",
+-+      "integrity": "sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==",
+-+      "license": "MIT"
+-+    },
+-+    "node_modules/@types/d3-color": {
+-+      "version": "3.1.3",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-color/-/d3-color-3.1.3.tgz",
+-+      "integrity": "sha512-iO90scth9WAbmgv7ogoq57O9YpKmFBbmoEoCHDB2xMBY0+/KVrqAaCDyCE16dUspeOvIxFFRI+0sEtqDqy2b4A==",
+-+      "license": "MIT"
+-+    },
+-+    "node_modules/@types/d3-ease": {
+-+      "version": "3.0.2",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-ease/-/d3-ease-3.0.2.tgz",
+-+      "integrity": "sha512-NcV1JjO5oDzoK26oMzbILE6HW7uVXOHLQvHshBUW4UMdZGfiY6v5BeQwh9a9tCzv+CeefZQHJt5SRgK154RtiA==",
+-+      "license": "MIT"
+-+    },
+-+    "node_modules/@types/d3-interpolate": {
+-+      "version": "3.0.4",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-interpolate/-/d3-interpolate-3.0.4.tgz",
+-+      "integrity": "sha512-mgLPETlrpVV1YRJIglr4Ez47g7Yxjl1lj7YKsiMCb27VJH9W8NVM6Bb9d8kkpG/uAQS5AmbA48q2IAolKKo1MA==",
+-+      "license": "MIT",
+-+      "dependencies": {
+-+        "@types/d3-color": "*"
+-+      }
+-+    },
+-+    "node_modules/@types/d3-path": {
+-+      "version": "3.1.1",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-path/-/d3-path-3.1.1.tgz",
+-+      "integrity": "sha512-VMZBYyQvbGmWyWVea0EHs/BwLgxc+MKi1zLDCONksozI4YJMcTt8ZEuIR4Sb1MMTE8MMW49v0IwI5+b7RmfWlg==",
+-+      "license": "MIT"
+-+    },
+-+    "node_modules/@types/d3-scale": {
+-+      "version": "4.0.9",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-scale/-/d3-scale-4.0.9.tgz",
+-+      "integrity": "sha512-dLmtwB8zkAeO/juAMfnV+sItKjlsw2lKdZVVy6LRr0cBmegxSABiLEpGVmSJJ8O08i4+sGR6qQtb6WtuwJdvVw==",
+-+      "license": "MIT",
+-+      "dependencies": {
+-+        "@types/d3-time": "*"
+-+      }
+-+    },
+-+    "node_modules/@types/d3-shape": {
+-+      "version": "3.1.8",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-shape/-/d3-shape-3.1.8.tgz",
+-+      "integrity": "sha512-lae0iWfcDeR7qt7rA88BNiqdvPS5pFVPpo5OfjElwNaT2yyekbM0C9vK+yqBqEmHr6lDkRnYNoTBYlAgJa7a4w==",
+-+      "license": "MIT",
+-+      "dependencies": {
+-+        "@types/d3-path": "*"
+-+      }
+-+    },
+-+    "node_modules/@types/d3-time": {
+-+      "version": "3.0.4",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-time/-/d3-time-3.0.4.tgz",
+-+      "integrity": "sha512-yuzZug1nkAAaBlBBikKZTgzCeA+k1uy4ZFwWANOfKw5z5LRhV0gNA7gNkKm7HoK+HRN0wX3EkxGk0fpbWhmB7g==",
+-+      "license": "MIT"
+-+    },
+-+    "node_modules/@types/d3-timer": {
+-+      "version": "3.0.2",
+-+      "resolved": "https://registry.npmjs.org/@types/d3-timer/-/d3-timer-3.0.2.tgz",
+-+      "integrity": "sha512-Ps3T8E8dZDam6fUyNiMkekK3XUsaUEik+idO9/YjPtfj2qruF8tFBXS7XhtE4iIXBLxhmLjP3SXpLhVf21I9Lw==",
+-+      "license": "MIT"
+-+    },
+-     "node_modules/@types/esrecurse": {
+-       "version": "4.3.1",
+-       "resolved": "https://registry.npmjs.org/@types/esrecurse/-/esrecurse-4.3.1.tgz",
+-@@ -3529,6 +3635,12 @@
+-       "integrity": "sha512-xMAgYwceFhRA2zY+XbEA7mxYbA093wdiW8Vu6gZPGWy9cmOyU9XesH1tNcEWsKFd5Vzrqx5T3D38PWx1FIIXkA==",
+-       "license": "MIT"
+-     },
+-+    "node_modules/@types/use-sync-external-store": {
+-+      "version": "0.0.6",
+-+      "resolved": "https://registry.npmjs.org/@types/use-sync-external-store/-/use-sync-external-store-0.0.6.tgz",
+-+      "integrity": "sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg==",
+-+      "license": "MIT"
+-+    },
+-     "node_modules/@types/validate-npm-package-name": {
+-       "version": "4.0.2",
+-       "resolved": "https://registry.npmjs.org/@types/validate-npm-package-name/-/validate-npm-package-name-4.0.2.tgz",
+-@@ -4464,6 +4576,127 @@
+-       "devOptional": true,
+-       "license": "MIT"
+-     },
+-+    "node_modules/d3-array": {
+-+      "version": "3.2.4",
+-+      "resolved": "https://registry.npmjs.org/d3-array/-/d3-array-3.2.4.tgz",
+-+      "integrity": "sha512-tdQAmyA18i4J7wprpYq8ClcxZy3SC31QMeByyCFyRt7BVHdREQZ5lpzoe5mFEYZUWe+oq8HBvk9JjpibyEV4Jg==",
+-+      "license": "ISC",
+-+      "dependencies": {
+-+        "internmap": "1 - 2"
+-+      },
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-color": {
+-+      "version": "3.1.0",
+-+      "resolved": "https://registry.npmjs.org/d3-color/-/d3-color-3.1.0.tgz",
+-+      "integrity": "sha512-zg/chbXyeBtMQ1LbD/WSoW2DpC3I0mpmPdW+ynRTj/x2DAWYrIY7qeZIHidozwV24m4iavr15lNwIwLxRmOxhA==",
+-+      "license": "ISC",
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-ease": {
+-+      "version": "3.0.1",
+-+      "resolved": "https://registry.npmjs.org/d3-ease/-/d3-ease-3.0.1.tgz",
+-+      "integrity": "sha512-wR/XK3D3XcLIZwpbvQwQ5fK+8Ykds1ip7A2Txe0yxncXSdq1L9skcG7blcedkOX+ZcgxGAmLX1FrRGbADwzi0w==",
+-+      "license": "BSD-3-Clause",
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-format": {
+-+      "version": "3.1.2",
+-+      "resolved": "https://registry.npmjs.org/d3-format/-/d3-format-3.1.2.tgz",
+-+      "integrity": "sha512-AJDdYOdnyRDV5b6ArilzCPPwc1ejkHcoyFarqlPqT7zRYjhavcT3uSrqcMvsgh2CgoPbK3RCwyHaVyxYcP2Arg==",
+-+      "license": "ISC",
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-interpolate": {
+-+      "version": "3.0.1",
+-+      "resolved": "https://registry.npmjs.org/d3-interpolate/-/d3-interpolate-3.0.1.tgz",
+-+      "integrity": "sha512-3bYs1rOD33uo8aqJfKP3JWPAibgw8Zm2+L9vBKEHJ2Rg+viTR7o5Mmv5mZcieN+FRYaAOWX5SJATX6k1PWz72g==",
+-+      "license": "ISC",
+-+      "dependencies": {
+-+        "d3-color": "1 - 3"
+-+      },
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-path": {
+-+      "version": "3.1.0",
+-+      "resolved": "https://registry.npmjs.org/d3-path/-/d3-path-3.1.0.tgz",
+-+      "integrity": "sha512-p3KP5HCf/bvjBSSKuXid6Zqijx7wIfNW+J/maPs+iwR35at5JCbLUT0LzF1cnjbCHWhqzQTIN2Jpe8pRebIEFQ==",
+-+      "license": "ISC",
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-scale": {
+-+      "version": "4.0.2",
+-+      "resolved": "https://registry.npmjs.org/d3-scale/-/d3-scale-4.0.2.tgz",
+-+      "integrity": "sha512-GZW464g1SH7ag3Y7hXjf8RoUuAFIqklOAq3MRl4OaWabTFJY9PN/E1YklhXLh+OQ3fM9yS2nOkCoS+WLZ6kvxQ==",
+-+      "license": "ISC",
+-+      "dependencies": {
+-+        "d3-array": "2.10.0 - 3",
+-+        "d3-format": "1 - 3",
+-+        "d3-interpolate": "1.2.0 - 3",
+-+        "d3-time": "2.1.1 - 3",
+-+        "d3-time-format": "2 - 4"
+-+      },
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-shape": {
+-+      "version": "3.2.0",
+-+      "resolved": "https://registry.npmjs.org/d3-shape/-/d3-shape-3.2.0.tgz",
+-+      "integrity": "sha512-SaLBuwGm3MOViRq2ABk3eLoxwZELpH6zhl3FbAoJ7Vm1gofKx6El1Ib5z23NUEhF9AsGl7y+dzLe5Cw2AArGTA==",
+-+      "license": "ISC",
+-+      "dependencies": {
+-+        "d3-path": "^3.1.0"
+-+      },
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-time": {
+-+      "version": "3.1.0",
+-+      "resolved": "https://registry.npmjs.org/d3-time/-/d3-time-3.1.0.tgz",
+-+      "integrity": "sha512-VqKjzBLejbSMT4IgbmVgDjpkYrNWUYJnbCGo874u7MMKIWsILRX+OpX/gTk8MqjpT1A/c6HY2dCA77ZN0lkQ2Q==",
+-+      "license": "ISC",
+-+      "dependencies": {
+-+        "d3-array": "2 - 3"
+-+      },
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-time-format": {
+-+      "version": "4.1.0",
+-+      "resolved": "https://registry.npmjs.org/d3-time-format/-/d3-time-format-4.1.0.tgz",
+-+      "integrity": "sha512-dJxPBlzC7NugB2PDLwo9Q8JiTR3M3e4/XANkreKSUxF8vvXKqm1Yfq4Q5dl8budlunRVlUUaDUgFt7eA8D6NLg==",
+-+      "license": "ISC",
+-+      "dependencies": {
+-+        "d3-time": "1 - 3"
+-+      },
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-+    "node_modules/d3-timer": {
+-+      "version": "3.0.1",
+-+      "resolved": "https://registry.npmjs.org/d3-timer/-/d3-timer-3.0.1.tgz",
+-+      "integrity": "sha512-ndfJ/JxxMd3nw31uyKoY2naivF+r29V+Lc0svZxe1JvvIRmi8hUsrMvdOwgS1o6uBHmiz91geQ0ylPP0aj1VUA==",
+-+      "license": "ISC",
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-     "node_modules/data-uri-to-buffer": {
+-       "version": "4.0.1",
+-       "resolved": "https://registry.npmjs.org/data-uri-to-buffer/-/data-uri-to-buffer-4.0.1.tgz",
+-@@ -4506,6 +4739,12 @@
+-         }
+-       }
+-     },
+-+    "node_modules/decimal.js-light": {
+-+      "version": "2.5.1",
+-+      "resolved": "https://registry.npmjs.org/decimal.js-light/-/decimal.js-light-2.5.1.tgz",
+-+      "integrity": "sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==",
+-+      "license": "MIT"
+-+    },
+-     "node_modules/dedent": {
+-       "version": "1.7.2",
+-       "resolved": "https://registry.npmjs.org/dedent/-/dedent-1.7.2.tgz",
+-@@ -4764,6 +5003,16 @@
+-         "node": ">= 0.4"
+-       }
+-     },
+-+    "node_modules/es-toolkit": {
+-+      "version": "1.49.0",
+-+      "resolved": "https://registry.npmjs.org/es-toolkit/-/es-toolkit-1.49.0.tgz",
+-+      "integrity": "sha512-G5iZ6Pc/FNRY/soKZHC+TxGDD83rHUDXxzaWhGCX44vAv/tMs56WMusnm/KMNK+luUPsgA9U28cGr4RDlSzL2g==",
+-+      "license": "MIT",
+-+      "workspaces": [
+-+        "docs",
+-+        "benchmarks"
+-+      ]
+-+    },
+-     "node_modules/escalade": {
+-       "version": "3.2.0",
+-       "resolved": "https://registry.npmjs.org/escalade/-/escalade-3.2.0.tgz",
+-@@ -4996,6 +5245,12 @@
+-         "node": ">= 0.6"
+-       }
+-     },
+-+    "node_modules/eventemitter3": {
+-+      "version": "5.0.4",
+-+      "resolved": "https://registry.npmjs.org/eventemitter3/-/eventemitter3-5.0.4.tgz",
+-+      "integrity": "sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==",
+-+      "license": "MIT"
+-+    },
+-     "node_modules/eventsource": {
+-       "version": "3.0.7",
+-       "resolved": "https://registry.npmjs.org/eventsource/-/eventsource-3.0.7.tgz",
+-@@ -5769,6 +6024,16 @@
+-         "node": ">= 4"
+-       }
+-     },
+-+    "node_modules/immer": {
+-+      "version": "10.2.0",
+-+      "resolved": "https://registry.npmjs.org/immer/-/immer-10.2.0.tgz",
+-+      "integrity": "sha512-d/+XTN3zfODyjr89gM3mPq1WNX2B8pYsu7eORitdwyA2sBubnTl3laYlBk4sXY5FUa5qTZGBDPJICVbvqzjlbw==",
+-+      "license": "MIT",
+-+      "funding": {
+-+        "type": "opencollective",
+-+        "url": "https://opencollective.com/immer"
+-+      }
+-+    },
+-     "node_modules/import-fresh": {
+-       "version": "3.3.1",
+-       "resolved": "https://registry.npmjs.org/import-fresh/-/import-fresh-3.3.1.tgz",
+-@@ -5801,6 +6066,15 @@
+-       "integrity": "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==",
+-       "license": "ISC"
+-     },
+-+    "node_modules/internmap": {
+-+      "version": "2.0.3",
+-+      "resolved": "https://registry.npmjs.org/internmap/-/internmap-2.0.3.tgz",
+-+      "integrity": "sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==",
+-+      "license": "ISC",
+-+      "engines": {
+-+        "node": ">=12"
+-+      }
+-+    },
+-     "node_modules/ip-address": {
+-       "version": "10.1.0",
+-       "resolved": "https://registry.npmjs.org/ip-address/-/ip-address-10.1.0.tgz",
+-@@ -7401,6 +7675,36 @@
+-         "react": "^16.8.0 || ^17 || ^18 || ^19"
+-       }
+-     },
+-+    "node_modules/react-is": {
+-+      "version": "19.2.7",
+-+      "resolved": "https://registry.npmjs.org/react-is/-/react-is-19.2.7.tgz",
+-+      "integrity": "sha512-kZFnouyVv7eP/Phmrlo9FK+zcAdriZJvzxXHF1Sl1P377WSGe2G/JxVolhTrB/jeV47lKImhNUsijjHAAbcl/A==",
+-+      "license": "MIT",
+-+      "peer": true
+-+    },
+-+    "node_modules/react-redux": {
+-+      "version": "9.3.0",
+-+      "resolved": "https://registry.npmjs.org/react-redux/-/react-redux-9.3.0.tgz",
+-+      "integrity": "sha512-KQopgqFo/p/fgmAs5qz6p5RWaNAzq40WAu7fJIXnQpYxFPbJYtsJPWvGeF2rOBaY/kEuV77AVsX8TsQzKm+A/g==",
+-+      "license": "MIT",
+-+      "dependencies": {
+-+        "@types/use-sync-external-store": "^0.0.6",
+-+        "use-sync-external-store": "^1.4.0"
+-+      },
+-+      "peerDependencies": {
+-+        "@types/react": "^18.2.25 || ^19",
+-+        "react": "^18.0 || ^19",
+-+        "redux": "^5.0.0"
+-+      },
+-+      "peerDependenciesMeta": {
+-+        "@types/react": {
+-+          "optional": true
+-+        },
+-+        "redux": {
+-+          "optional": true
+-+        }
+-+      }
+-+    },
+-     "node_modules/react-remove-scroll": {
+-       "version": "2.7.2",
+-       "resolved": "https://registry.npmjs.org/react-remove-scroll/-/react-remove-scroll-2.7.2.tgz",
+-@@ -7540,6 +7844,51 @@
+-         "node": ">= 4"
+-       }
+-     },
+-+    "node_modules/recharts": {
+-+      "version": "3.8.0",
+-+      "resolved": "https://registry.npmjs.org/recharts/-/recharts-3.8.0.tgz",
+-+      "integrity": "sha512-Z/m38DX3L73ExO4Tpc9/iZWHmHnlzWG4njQbxsF5aSjwqmHNDDIm0rdEBArkwsBvR8U6EirlEHiQNYWCVh9sGQ==",
+-+      "license": "MIT",
+-+      "workspaces": [
+-+        "www"
+-+      ],
+-+      "dependencies": {
+-+        "@reduxjs/toolkit": "^1.9.0 || 2.x.x",
+-+        "clsx": "^2.1.1",
+-+        "decimal.js-light": "^2.5.1",
+-+        "es-toolkit": "^1.39.3",
+-+        "eventemitter3": "^5.0.1",
+-+        "immer": "^10.1.1",
+-+        "react-redux": "8.x.x || 9.x.x",
+-+        "reselect": "5.1.1",
+-+        "tiny-invariant": "^1.3.3",
+-+        "use-sync-external-store": "^1.2.2",
+-+        "victory-vendor": "^37.0.2"
+-+      },
+-+      "engines": {
+-+        "node": ">=18"
+-+      },
+-+      "peerDependencies": {
+-+        "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+-+        "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+-+        "react-is": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+-+      }
+-+    },
+-+    "node_modules/redux": {
+-+      "version": "5.0.1",
+-+      "resolved": "https://registry.npmjs.org/redux/-/redux-5.0.1.tgz",
+-+      "integrity": "sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==",
+-+      "license": "MIT"
+-+    },
+-+    "node_modules/redux-thunk": {
+-+      "version": "3.1.0",
+-+      "resolved": "https://registry.npmjs.org/redux-thunk/-/redux-thunk-3.1.0.tgz",
+-+      "integrity": "sha512-NW2r5T6ksUKXCabzhL9z+h206HQw/NJkcLm1GPImRQ8IzfXwRGqjVhKJGauHirT0DAuyy6hjdnMZaRoAcy0Klw==",
+-+      "license": "MIT",
+-+      "peerDependencies": {
+-+        "redux": "^5.0.0"
+-+      }
+-+    },
+-     "node_modules/require-directory": {
+-       "version": "2.1.1",
+-       "resolved": "https://registry.npmjs.org/require-directory/-/require-directory-2.1.1.tgz",
+-@@ -7558,6 +7907,12 @@
+-         "node": ">=0.10.0"
+-       }
+-     },
+-+    "node_modules/reselect": {
+-+      "version": "5.1.1",
+-+      "resolved": "https://registry.npmjs.org/reselect/-/reselect-5.1.1.tgz",
+-+      "integrity": "sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w==",
+-+      "license": "MIT"
+-+    },
+-     "node_modules/resolve-from": {
+-       "version": "4.0.0",
+-       "resolved": "https://registry.npmjs.org/resolve-from/-/resolve-from-4.0.0.tgz",
+-@@ -8464,6 +8819,28 @@
+-         "node": ">= 0.8"
+-       }
+-     },
+-+    "node_modules/victory-vendor": {
+-+      "version": "37.3.6",
+-+      "resolved": "https://registry.npmjs.org/victory-vendor/-/victory-vendor-37.3.6.tgz",
+-+      "integrity": "sha512-SbPDPdDBYp+5MJHhBCAyI7wKM3d5ivekigc2Dk2s7pgbZ9wIgIBYGVw4zGHBml/qTFbexrofXW6Gu4noGxrOwQ==",
+-+      "license": "MIT AND ISC",
+-+      "dependencies": {
+-+        "@types/d3-array": "^3.0.3",
+-+        "@types/d3-ease": "^3.0.0",
+-+        "@types/d3-interpolate": "^3.0.1",
+-+        "@types/d3-scale": "^4.0.2",
+-+        "@types/d3-shape": "^3.1.0",
+-+        "@types/d3-time": "^3.0.0",
+-+        "@types/d3-timer": "^3.0.0",
+-+        "d3-array": "^3.1.6",
+-+        "d3-ease": "^3.0.1",
+-+        "d3-interpolate": "^3.0.1",
+-+        "d3-scale": "^4.0.2",
+-+        "d3-shape": "^3.1.0",
+-+        "d3-time": "^3.0.0",
+-+        "d3-timer": "^3.0.1"
+-+      }
+-+    },
+-     "node_modules/vite": {
+-       "version": "8.0.10",
+-       "resolved": "https://registry.npmjs.org/vite/-/vite-8.0.10.tgz",
+-diff --git a/package.json b/package.json
+-index 0ed4e0d..cf50789 100644
+---- a/package.json
+-+++ b/package.json
+-@@ -30,6 +30,7 @@
+-     "react-hook-form": "^7.74.0",
+-     "react-router": "^7.15.0",
+-     "react-toastify": "^11.1.0",
+-+    "recharts": "^3.8.0",
+-     "shadcn": "^4.5.0",
+-     "tailwind-merge": "^3.5.0",
+-     "tailwindcss": "^4.2.4",
+-diff --git a/src/components/customUi/CustomPopUp.tsx b/src/components/customUi/CustomPopUp.tsx
+-index d96b481..d5ccf40 100644
+---- a/src/components/customUi/CustomPopUp.tsx
+-+++ b/src/components/customUi/CustomPopUp.tsx
+-@@ -2,7 +2,6 @@ import { useState } from "react";
+- import { Input } from "../ui/input";
+- import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+- import { ScrollArea } from "../ui/scroll-area";
+--import { Label } from "../ui/label";
+- 
+- type CustomPopupProps = {
+-   value?: string;
+-@@ -16,7 +15,6 @@ export function CustomPopup({
+-   value,
+-   onChange,
+-   className,
+--  label,
+-   options = [],
+- }: CustomPopupProps) {
+-   const [searchText, setSearchText] = useState("");
+-@@ -37,7 +35,6 @@ export function CustomPopup({
+-   return (
+-     <Popover open={isOpen} onOpenChange={setIsOpen}>
+-       <div className="grid gap-2">
+--        <Label className="text-sm">{label}</Label>
+-         <PopoverTrigger asChild>
+-           <Input value={selectedValue} readOnly />
+-         </PopoverTrigger>
+-diff --git a/src/components/customUi/RhfPopUpInput.tsx b/src/components/customUi/RhfPopUpInput.tsx
+-index 170a2e2..c2e81ed 100644
+---- a/src/components/customUi/RhfPopUpInput.tsx
+-+++ b/src/components/customUi/RhfPopUpInput.tsx
+-@@ -5,6 +5,7 @@ import {
+-   type Path,
+- } from "react-hook-form";
+- import { CustomPopup } from "./CustomPopUp";
+-+import { Field, FieldError, FieldLabel } from "../ui/field";
+- 
+- type RhfPopUpInput<T extends FieldValues> = {
+-   control: Control<T>;
+-@@ -23,14 +24,22 @@ export function RhfPopUpInput<T extends FieldValues>({
+-     <Controller
+-       control={control}
+-       name={name}
+--      render={({ field }) => (
+--        <CustomPopup
+--          label={label}
+--          className="w-fit"
+--          value={field.value}
+--          onChange={field.onChange}
+--          options={options}
+--        />
+-+      render={({ field, fieldState }) => (
+-+        <Field data-invalid={fieldState.invalid}>
+-+          <FieldLabel htmlFor={name} className="text-sm ">
+-+            {label}
+-+            {fieldState.invalid && (
+-+              <FieldError className="text-xs" errors={[fieldState.error]} />
+-+            )}
+-+          </FieldLabel>
+-+          <CustomPopup
+-+            label={label}
+-+            className="w-fit"
+-+            value={field.value}
+-+            onChange={field.onChange}
+-+            options={options}
+-+          />
+-+        </Field>
+-       )}
+-     />
+-   );
+-diff --git a/src/components/header/BookNavigation.tsx b/src/components/header/BookNavigation.tsx
+-index 52b9089..92b0b4b 100644
+---- a/src/components/header/BookNavigation.tsx
+-+++ b/src/components/header/BookNavigation.tsx
+-@@ -28,6 +28,14 @@ export function BookNavigation() {
+-               <Link to={"/owned"}>소장도서</Link>
+-             </NavigationMenuLink>
+-           </NavigationMenuItem>
+-+          <NavigationMenuItem>
+-+            <NavigationMenuLink
+-+              asChild
+-+              className={navigationMenuTriggerStyle()}
+-+            >
+-+              <Link to={"/chart"}>통계</Link>
+-+            </NavigationMenuLink>
+-+          </NavigationMenuItem>
+-         </NavigationMenuList>
+-       </NavigationMenu>
+-     </div>
+-diff --git a/src/components/ui/button.tsx b/src/components/ui/button.tsx
+-index f9204d8..0b9b077 100644
+---- a/src/components/ui/button.tsx
+-+++ b/src/components/ui/button.tsx
+-@@ -1,8 +1,43 @@
+--import * as React from "react";
+--import { Slot } from "radix-ui";
+-+import * as React from "react"
+-+import { cva, type VariantProps } from "class-variance-authority"
+-+import { Slot } from "radix-ui"
+- 
+--import { cn } from "@/lib/utils";
+--import { buttonVariants, type ButtonSize, type ButtonVariant } from "./button-variants";
+-+import { cn } from "@/lib/utils"
+-+
+-+const buttonVariants = cva(
+-+  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+-+  {
+-+    variants: {
+-+      variant: {
+-+        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+-+        outline:
+-+          "border-border hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:bg-input/30",
+-+        secondary:
+-+          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+-+        ghost:
+-+          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+-+        destructive:
+-+          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+-+        link: "text-primary underline-offset-4 hover:underline",
+-+      },
+-+      size: {
+-+        default:
+-+          "h-7 gap-1 px-2 text-xs/relaxed has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+-+        xs: "h-5 gap-1 rounded-sm px-2 text-[0.625rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-2.5",
+-+        sm: "h-6 gap-1 px-2 text-xs/relaxed has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+-+        lg: "h-8 gap-1 px-2.5 text-xs/relaxed has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-4",
+-+        icon: "size-7 [&_svg:not([class*='size-'])]:size-3.5",
+-+        "icon-xs": "size-5 rounded-sm [&_svg:not([class*='size-'])]:size-2.5",
+-+        "icon-sm": "size-6 [&_svg:not([class*='size-'])]:size-3",
+-+        "icon-lg": "size-8 [&_svg:not([class*='size-'])]:size-4",
+-+      },
+-+    },
+-+    defaultVariants: {
+-+      variant: "default",
+-+      size: "default",
+-+    },
+-+  }
+-+)
+- 
+- function Button({
+-   className,
+-@@ -11,12 +46,10 @@ function Button({
+-   asChild = false,
+-   ...props
+- }: React.ComponentProps<"button"> &
+--  {
+--    variant?: ButtonVariant;
+--    size?: ButtonSize;
+--    asChild?: boolean;
+-+  VariantProps<typeof buttonVariants> & {
+-+    asChild?: boolean
+-   }) {
+--  const Comp = asChild ? Slot.Root : "button";
+-+  const Comp = asChild ? Slot.Root : "button"
+- 
+-   return (
+-     <Comp
+-@@ -26,7 +59,7 @@ function Button({
+-       className={cn(buttonVariants({ variant, size, className }))}
+-       {...props}
+-     />
+--  );
+-+  )
+- }
+- 
+--export { Button };
+-+export { Button, buttonVariants }
+-diff --git a/src/components/ui/chart.tsx b/src/components/ui/chart.tsx
+-new file mode 100644
+-index 0000000..7dcecb5
+---- /dev/null
+-+++ b/src/components/ui/chart.tsx
+-@@ -0,0 +1,371 @@
+-+import * as React from "react"
+-+import * as RechartsPrimitive from "recharts"
+-+import type { TooltipValueType } from "recharts"
+-+
+-+import { cn } from "@/lib/utils"
+-+
+-+// Format: { THEME_NAME: CSS_SELECTOR }
+-+const THEMES = { light: "", dark: ".dark" } as const
+-+
+-+const INITIAL_DIMENSION = { width: 320, height: 200 } as const
+-+type TooltipNameType = number | string
+-+
+-+export type ChartConfig = Record<
+-+  string,
+-+  {
+-+    label?: React.ReactNode
+-+    icon?: React.ComponentType
+-+  } & (
+-+    | { color?: string; theme?: never }
+-+    | { color?: never; theme: Record<keyof typeof THEMES, string> }
+-+  )
+-+>
+-+
+-+type ChartContextProps = {
+-+  config: ChartConfig
+-+}
+-+
+-+const ChartContext = React.createContext<ChartContextProps | null>(null)
+-+
+-+function useChart() {
+-+  const context = React.useContext(ChartContext)
+-+
+-+  if (!context) {
+-+    throw new Error("useChart must be used within a <ChartContainer />")
+-+  }
+-+
+-+  return context
+-+}
+-+
+-+function ChartContainer({
+-+  id,
+-+  className,
+-+  children,
+-+  config,
+-+  initialDimension = INITIAL_DIMENSION,
+-+  ...props
+-+}: React.ComponentProps<"div"> & {
+-+  config: ChartConfig
+-+  children: React.ComponentProps<
+-+    typeof RechartsPrimitive.ResponsiveContainer
+-+  >["children"]
+-+  initialDimension?: {
+-+    width: number
+-+    height: number
+-+  }
+-+}) {
+-+  const uniqueId = React.useId()
+-+  const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`
+-+
+-+  return (
+-+    <ChartContext.Provider value={{ config }}>
+-+      <div
+-+        data-slot="chart"
+-+        data-chart={chartId}
+-+        className={cn(
+-+          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+-+          className
+-+        )}
+-+        {...props}
+-+      >
+-+        <ChartStyle id={chartId} config={config} />
+-+        <RechartsPrimitive.ResponsiveContainer
+-+          initialDimension={initialDimension}
+-+        >
+-+          {children}
+-+        </RechartsPrimitive.ResponsiveContainer>
+-+      </div>
+-+    </ChartContext.Provider>
+-+  )
+-+}
+-+
+-+const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+-+  const colorConfig = Object.entries(config).filter(
+-+    ([, config]) => config.theme ?? config.color
+-+  )
+-+
+-+  if (!colorConfig.length) {
+-+    return null
+-+  }
+-+
+-+  return (
+-+    <style
+-+      dangerouslySetInnerHTML={{
+-+        __html: Object.entries(THEMES)
+-+          .map(
+-+            ([theme, prefix]) => `
+-+${prefix} [data-chart=${id}] {
+-+${colorConfig
+-+  .map(([key, itemConfig]) => {
+-+    const color =
+-+      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
+-+      itemConfig.color
+-+    return color ? `  --color-${key}: ${color};` : null
+-+  })
+-+  .join("\n")}
+-+}
+-+`
+-+          )
+-+          .join("\n"),
+-+      }}
+-+    />
+-+  )
+-+}
+-+
+-+const ChartTooltip = RechartsPrimitive.Tooltip
+-+
+-+function ChartTooltipContent({
+-+  active,
+-+  payload,
+-+  className,
+-+  indicator = "dot",
+-+  hideLabel = false,
+-+  hideIndicator = false,
+-+  label,
+-+  labelFormatter,
+-+  labelClassName,
+-+  formatter,
+-+  color,
+-+  nameKey,
+-+  labelKey,
+-+}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+-+  React.ComponentProps<"div"> & {
+-+    hideLabel?: boolean
+-+    hideIndicator?: boolean
+-+    indicator?: "line" | "dot" | "dashed"
+-+    nameKey?: string
+-+    labelKey?: string
+-+  } & Omit<
+-+    RechartsPrimitive.DefaultTooltipContentProps<
+-+      TooltipValueType,
+-+      TooltipNameType
+-+    >,
+-+    "accessibilityLayer"
+-+  >) {
+-+  const { config } = useChart()
+-+
+-+  const tooltipLabel = React.useMemo(() => {
+-+    if (hideLabel || !payload?.length) {
+-+      return null
+-+    }
+-+
+-+    const [item] = payload
+-+    const key = `${labelKey ?? item?.dataKey ?? item?.name ?? "value"}`
+-+    const itemConfig = getPayloadConfigFromPayload(config, item, key)
+-+    const value =
+-+      !labelKey && typeof label === "string"
+-+        ? (config[label]?.label ?? label)
+-+        : itemConfig?.label
+-+
+-+    if (labelFormatter) {
+-+      return (
+-+        <div className={cn("font-medium", labelClassName)}>
+-+          {labelFormatter(value, payload)}
+-+        </div>
+-+      )
+-+    }
+-+
+-+    if (!value) {
+-+      return null
+-+    }
+-+
+-+    return <div className={cn("font-medium", labelClassName)}>{value}</div>
+-+  }, [
+-+    label,
+-+    labelFormatter,
+-+    payload,
+-+    hideLabel,
+-+    labelClassName,
+-+    config,
+-+    labelKey,
+-+  ])
+-+
+-+  if (!active || !payload?.length) {
+-+    return null
+-+  }
+-+
+-+  const nestLabel = payload.length === 1 && indicator !== "dot"
+-+
+-+  return (
+-+    <div
+-+      className={cn(
+-+        "grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs/relaxed shadow-xl",
+-+        className
+-+      )}
+-+    >
+-+      {!nestLabel ? tooltipLabel : null}
+-+      <div className="grid gap-1.5">
+-+        {payload
+-+          .filter((item) => item.type !== "none")
+-+          .map((item, index) => {
+-+            const key = `${nameKey ?? item.name ?? item.dataKey ?? "value"}`
+-+            const itemConfig = getPayloadConfigFromPayload(config, item, key)
+-+            const indicatorColor = color ?? item.payload?.fill ?? item.color
+-+
+-+            return (
+-+              <div
+-+                key={index}
+-+                className={cn(
+-+                  "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
+-+                  indicator === "dot" && "items-center"
+-+                )}
+-+              >
+-+                {formatter && item?.value !== undefined && item.name ? (
+-+                  formatter(item.value, item.name, item, index, item.payload)
+-+                ) : (
+-+                  <>
+-+                    {itemConfig?.icon ? (
+-+                      <itemConfig.icon />
+-+                    ) : (
+-+                      !hideIndicator && (
+-+                        <div
+-+                          className={cn(
+-+                            "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
+-+                            {
+-+                              "h-2.5 w-2.5": indicator === "dot",
+-+                              "w-1": indicator === "line",
+-+                              "w-0 border-[1.5px] border-dashed bg-transparent":
+-+                                indicator === "dashed",
+-+                              "my-0.5": nestLabel && indicator === "dashed",
+-+                            }
+-+                          )}
+-+                          style={
+-+                            {
+-+                              "--color-bg": indicatorColor,
+-+                              "--color-border": indicatorColor,
+-+                            } as React.CSSProperties
+-+                          }
+-+                        />
+-+                      )
+-+                    )}
+-+                    <div
+-+                      className={cn(
+-+                        "flex flex-1 justify-between leading-none",
+-+                        nestLabel ? "items-end" : "items-center"
+-+                      )}
+-+                    >
+-+                      <div className="grid gap-1.5">
+-+                        {nestLabel ? tooltipLabel : null}
+-+                        <span className="text-muted-foreground">
+-+                          {itemConfig?.label ?? item.name}
+-+                        </span>
+-+                      </div>
+-+                      {item.value != null && (
+-+                        <span className="font-mono font-medium text-foreground tabular-nums">
+-+                          {typeof item.value === "number"
+-+                            ? item.value.toLocaleString()
+-+                            : String(item.value)}
+-+                        </span>
+-+                      )}
+-+                    </div>
+-+                  </>
+-+                )}
+-+              </div>
+-+            )
+-+          })}
+-+      </div>
+-+    </div>
+-+  )
+-+}
+-+
+-+const ChartLegend = RechartsPrimitive.Legend
+-+
+-+function ChartLegendContent({
+-+  className,
+-+  hideIcon = false,
+-+  payload,
+-+  verticalAlign = "bottom",
+-+  nameKey,
+-+}: React.ComponentProps<"div"> & {
+-+  hideIcon?: boolean
+-+  nameKey?: string
+-+} & RechartsPrimitive.DefaultLegendContentProps) {
+-+  const { config } = useChart()
+-+
+-+  if (!payload?.length) {
+-+    return null
+-+  }
+-+
+-+  return (
+-+    <div
+-+      className={cn(
+-+        "flex items-center justify-center gap-4",
+-+        verticalAlign === "top" ? "pb-3" : "pt-3",
+-+        className
+-+      )}
+-+    >
+-+      {payload
+-+        .filter((item) => item.type !== "none")
+-+        .map((item, index) => {
+-+          const key = `${nameKey ?? item.dataKey ?? "value"}`
+-+          const itemConfig = getPayloadConfigFromPayload(config, item, key)
+-+
+-+          return (
+-+            <div
+-+              key={index}
+-+              className={cn(
+-+                "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
+-+              )}
+-+            >
+-+              {itemConfig?.icon && !hideIcon ? (
+-+                <itemConfig.icon />
+-+              ) : (
+-+                <div
+-+                  className="h-2 w-2 shrink-0 rounded-[2px]"
+-+                  style={{
+-+                    backgroundColor: item.color,
+-+                  }}
+-+                />
+-+              )}
+-+              {itemConfig?.label}
+-+            </div>
+-+          )
+-+        })}
+-+    </div>
+-+  )
+-+}
+-+
+-+function getPayloadConfigFromPayload(
+-+  config: ChartConfig,
+-+  payload: unknown,
+-+  key: string
+-+) {
+-+  if (typeof payload !== "object" || payload === null) {
+-+    return undefined
+-+  }
+-+
+-+  const payloadPayload =
+-+    "payload" in payload &&
+-+    typeof payload.payload === "object" &&
+-+    payload.payload !== null
+-+      ? payload.payload
+-+      : undefined
+-+
+-+  let configLabelKey: string = key
+-+
+-+  if (
+-+    key in payload &&
+-+    typeof payload[key as keyof typeof payload] === "string"
+-+  ) {
+-+    configLabelKey = payload[key as keyof typeof payload] as string
+-+  } else if (
+-+    payloadPayload &&
+-+    key in payloadPayload &&
+-+    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
+-+  ) {
+-+    configLabelKey = payloadPayload[
+-+      key as keyof typeof payloadPayload
+-+    ] as string
+-+  }
+-+
+-+  return configLabelKey in config ? config[configLabelKey] : config[key]
+-+}
+-+
+-+export {
+-+  ChartContainer,
+-+  ChartTooltip,
+-+  ChartTooltipContent,
+-+  ChartLegend,
+-+  ChartLegendContent,
+-+  ChartStyle,
+-+}
+-diff --git a/src/feature/Chart/API/chartAPI.ts b/src/feature/Chart/API/chartAPI.ts
+-new file mode 100644
+-index 0000000..d9187fc
+---- /dev/null
+-+++ b/src/feature/Chart/API/chartAPI.ts
+-@@ -0,0 +1,25 @@
+-+import { api } from "@/lib/api";
+-+import axios from "axios";
+-+
+-+type OwnedBookCountResponse<T> = {
+-+  message: string;
+-+  data: T;
+-+};
+-+
+-+export async function getOwnedBookCount() {
+-+  try {
+-+    const response =
+-+      await api.get<OwnedBookCountResponse<{ count: number }>>(
+-+        "owned-books/count",
+-+      );
+-+    return response.data;
+-+  } catch (error) {
+-+    if (axios.isAxiosError(error)) {
+-+      throw new Error(
+-+        error.response?.data.message || "총 도서수 불러오기 실패",
+-+        { cause: error },
+-+      );
+-+    }
+-+    throw error;
+-+  }
+-+}
+-diff --git a/src/feature/Chart/ChartPage.tsx b/src/feature/Chart/ChartPage.tsx
+-new file mode 100644
+-index 0000000..7e6f0a5
+---- /dev/null
+-+++ b/src/feature/Chart/ChartPage.tsx
+-@@ -0,0 +1,16 @@
+-+import { PageContainer, PageContent } from "@/components/layout/Page";
+-+import { GenreChart } from "./GenreChart";
+-+import { ReadingStateChart } from "./ReadingStateChart";
+-+import { TotalBookCard } from "./TotalBookCard";
+-+
+-+export function ChartPage() {
+-+  return (
+-+    <PageContainer>
+-+      <PageContent className="grid gap-2 justify-items-center space-y-0 grid-cols-1 sm:max-md:grid-cols-2 md:grid-cols-2">
+-+        <TotalBookCard />
+-+        <ReadingStateChart />
+-+        <GenreChart />
+-+      </PageContent>
+-+    </PageContainer>
+-+  );
+-+}
+-diff --git a/src/feature/Chart/GenreChart.tsx b/src/feature/Chart/GenreChart.tsx
+-new file mode 100644
+-index 0000000..de37b7d
+---- /dev/null
+-+++ b/src/feature/Chart/GenreChart.tsx
+-@@ -0,0 +1,112 @@
+-+import { useQuery } from "@tanstack/react-query";
+-+import { useState } from "react";
+-+import { getGenreCount } from "../ownedBook/api/ownedBooks";
+-+import {
+-+  ChartContainer,
+-+  ChartLegend,
+-+  ChartLegendContent,
+-+  ChartTooltip,
+-+  ChartTooltipContent,
+-+  type ChartConfig,
+-+} from "@/components/ui/chart";
+-+import {
+-+  Card,
+-+  CardAction,
+-+  CardContent,
+-+  CardHeader,
+-+  CardTitle,
+-+} from "@/components/ui/card";
+-+import { Button } from "@/components/ui/button";
+-+import { Bar, BarChart, Pie, PieChart, XAxis, YAxis } from "recharts";
+-+
+-+const CHART_COLORS = [
+-+  "var(--color-chart-1)",
+-+  "var(--color-chart-2)",
+-+  "var(--color-chart-3)",
+-+  "var(--color-chart-4)",
+-+  "var(--color-chart-5)",
+-+];
+-+
+-+export function GenreChart() {
+-+  const [chartMode, setChartMode] = useState<"pie" | "bar">("pie");
+-+  const { data, isError, isLoading } = useQuery({
+-+    queryKey: ["ownedBookGenreCounts"],
+-+    queryFn: getGenreCount,
+-+    select: ({ data }) => {
+-+      const chartConfig: ChartConfig = {
+-+        count: {
+-+          label: "권수",
+-+        },
+-+      };
+-+
+-+      const chartData = data.map((item, index) => {
+-+        const key = `genre-${index}`;
+-+
+-+        chartConfig[key] = {
+-+          label: item.genre,
+-+          color: CHART_COLORS[index % CHART_COLORS.length],
+-+        };
+-+
+-+        return {
+-+          key,
+-+          count: item.count,
+-+          fill: `var(--color-${key})`,
+-+          genre: item.genre,
+-+        };
+-+      });
+-+      return {
+-+        chartData,
+-+        chartConfig,
+-+      };
+-+    },
+-+  });
+-+  return (
+-+    <Card className="w-full">
+-+      <CardHeader>
+-+        <CardTitle>장르별 도서 보유 개수</CardTitle>
+-+        <CardAction>
+-+          <Button
+-+            onClick={() =>
+-+              setChartMode((mode) => (mode === "pie" ? "bar" : "pie"))
+-+            }
+-+          >
+-+            {chartMode === "pie" ? "막대 차트" : "원형 차트"}
+-+          </Button>
+-+        </CardAction>
+-+      </CardHeader>
+-+
+-+      <CardContent>
+-+        {isLoading ? (
+-+          <div>불러오는 중...</div>
+-+        ) : isError || !data ? (
+-+          <div>장르 데이터를 불러오지 못했습니다.</div>
+-+        ) : chartMode === "pie" ? (
+-+          <ChartContainer config={data.chartConfig}>
+-+            <PieChart>
+-+              <ChartTooltip
+-+                cursor={false}
+-+                content={<ChartTooltipContent hideLabel />}
+-+              />
+-+              <Pie
+-+                innerRadius={45}
+-+                data={data.chartData}
+-+                dataKey="count"
+-+                nameKey="key"
+-+              />
+-+              <ChartLegend content={<ChartLegendContent />} />
+-+            </PieChart>
+-+          </ChartContainer>
+-+        ) : (
+-+          <ChartContainer config={data.chartConfig}>
+-+            <BarChart data={data.chartData}>
+-+              <XAxis dataKey="genre" />
+-+              <YAxis />
+-+              <ChartTooltip content={<ChartTooltipContent />} />
+-+              <Bar dataKey="count" fill="var(--chart-1)" />
+-+            </BarChart>
+-+          </ChartContainer>
+-+        )}
+-+      </CardContent>
+-+    </Card>
+-+  );
+-+}
+-diff --git a/src/feature/Chart/ReadingStateChart.tsx b/src/feature/Chart/ReadingStateChart.tsx
+-new file mode 100644
+-index 0000000..ab12daa
+---- /dev/null
+-+++ b/src/feature/Chart/ReadingStateChart.tsx
+-@@ -0,0 +1,89 @@
+-+import {
+-+  ChartContainer,
+-+  ChartLegend,
+-+  ChartLegendContent,
+-+  ChartTooltip,
+-+  ChartTooltipContent,
+-+  type ChartConfig,
+-+} from "@/components/ui/chart";
+-+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+-+import { useQuery } from "@tanstack/react-query";
+-+import { Pie, PieChart } from "recharts";
+-+import { getReadingStatusCount } from "../ownedBook/api/ownedBooks";
+-+import { READING_STATUS_LABEL_MAP } from "../ownedBook/model/ownedBookSchema";
+-+
+-+const chartConfig = {
+-+  count: {
+-+    label: "권수",
+-+  },
+-+  OWNED: {
+-+    label: READING_STATUS_LABEL_MAP.OWNED,
+-+    color: "var(--color-chart-1)",
+-+  },
+-+  READING: {
+-+    label: READING_STATUS_LABEL_MAP.READING,
+-+    color: "var(--color-chart-2)",
+-+  },
+-+  COMPLETED: {
+-+    label: READING_STATUS_LABEL_MAP.COMPLETED,
+-+    color: "var(--color-chart-3)",
+-+  },
+-+  ABANDONED: {
+-+    label: READING_STATUS_LABEL_MAP.ABANDONED,
+-+    color: "var(--color-chart-4)",
+-+  },
+-+  ABANDONED_READING: {
+-+    label: READING_STATUS_LABEL_MAP.ABANDONED_READING,
+-+    color: "var(--color-chart-5)",
+-+  },
+-+} satisfies ChartConfig;
+-+
+-+export function ReadingStateChart() {
+-+  const { data, isError, isLoading } = useQuery({
+-+    queryKey: ["readingStatusCard"],
+-+    queryFn: getReadingStatusCount,
+-+    select: ({ data }) => {
+-+      const readingStatusCounts = Array.isArray(data) ? data : [data];
+-+
+-+      return readingStatusCounts.map((item) => ({
+-+        ...item,
+-+        fill: `var(--color-${item.readingStatus})`,
+-+      }));
+-+    },
+-+  });
+-+
+-+  return (
+-+    <Card className="w-full">
+-+      <CardHeader>
+-+        <CardTitle>독서 상태 통계</CardTitle>
+-+      </CardHeader>
+-+      <CardContent>
+-+        {isLoading ? (
+-+          <div>불러오는 중...</div>
+-+        ) : isError || !data ? (
+-+          <div>독서 상태 데이터를 불러오지 못했습니다.</div>
+-+        ) : data.length === 0 ? (
+-+          <div>표시할 독서 상태 데이터가 없습니다.</div>
+-+        ) : (
+-+          <ChartContainer config={chartConfig}>
+-+            <PieChart>
+-+              <ChartTooltip
+-+                cursor={false}
+-+                content={<ChartTooltipContent hideLabel />}
+-+              />
+-+              <Pie
+-+                innerRadius={45}
+-+                data={data}
+-+                dataKey="count"
+-+                nameKey="readingStatus"
+-+              />
+-+              <ChartLegend
+-+                content={<ChartLegendContent nameKey="readingStatus" />}
+-+              />
+-+            </PieChart>
+-+          </ChartContainer>
+-+        )}
+-+      </CardContent>
+-+    </Card>
+-+  );
+-+}
+-diff --git a/src/feature/Chart/TotalBookCard.tsx b/src/feature/Chart/TotalBookCard.tsx
+-new file mode 100644
+-index 0000000..20926a9
+---- /dev/null
+-+++ b/src/feature/Chart/TotalBookCard.tsx
+-@@ -0,0 +1,35 @@
+-+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+-+import { useQuery } from "@tanstack/react-query";
+-+import { getOwnedBookCount } from "./API/chartAPI";
+-+
+-+export function TotalBookCard() {
+-+  const { data, isError, isLoading } = useQuery({
+-+    queryKey: ["totalOwnedBookCount"],
+-+    queryFn: getOwnedBookCount,
+-+    select: (data) => data.data.count,
+-+  });
+-+
+-+  return (
+-+    <Card className="w-full">
+-+      <CardHeader>
+-+        <CardTitle>등록한 전체 도서</CardTitle>
+-+      </CardHeader>
+-+      <CardContent>
+-+        {isLoading ? (
+-+          <div className="text-muted-foreground">불러오는 중...</div>
+-+        ) : isError || data == null ? (
+-+          <div className="text-muted-foreground">
+-+            전체 도서 수를 불러오지 못했습니다.
+-+          </div>
+-+        ) : (
+-+          <div className="flex items-end gap-2">
+-+            <span className="text-4xl font-semibold leading-none tabular-nums">
+-+              {data}
+-+            </span>
+-+            <span className="text-sm text-muted-foreground">권</span>
+-+          </div>
+-+        )}
+-+      </CardContent>
+-+    </Card>
+-+  );
+-+}
+-diff --git a/src/feature/ownedBook/api/ownedBooks.ts b/src/feature/ownedBook/api/ownedBooks.ts
+-index ba2fba9..acad8cb 100644
+---- a/src/feature/ownedBook/api/ownedBooks.ts
+-+++ b/src/feature/ownedBook/api/ownedBooks.ts
+-@@ -1,5 +1,5 @@
+- import { api } from "@/lib/api";
+--import type { OwnedBook } from "../../bookType";
+-+import type { OwnedBook, ReadingStatus } from "../../bookType";
+- import axios from "axios";
+- 
+- type OwnedBookResponse<T> = {
+-@@ -26,6 +26,30 @@ export async function getOwnedBooks() {
+-   }
+- }
+- 
+-+type GenreCountData = {
+-+  genre: string;
+-+  count: number;
+-+};
+-+
+-+export async function getGenreCount() {
+-+  try {
+-+    const { data } = await api.get<OwnedBookResponse<GenreCountData[]>>(
+-+      "/owned-books/genre-counts",
+-+    );
+-+    return data;
+-+  } catch (error) {
+-+    if (axios.isAxiosError(error)) {
+-+      throw new Error(
+-+        error.response?.data.message || "장르 개수 불러오기를 실패했습니다.",
+-+        {
+-+          cause: error,
+-+        },
+-+      );
+-+    }
+-+    throw error;
+-+  }
+-+}
+-+
+- export async function createOwnedBook(formData: OwnedBookFormType) {
+-   try {
+-     const { data } = await api.post<OwnedBookResponse<string>>(
+-@@ -90,8 +114,36 @@ export async function deleteOwnedBooks(ids: string[]) {
+- export async function getOwnedGenreList(): Promise<
+-   OwnedBookResponse<string[]>
+- > {
+--  const response = await api.get<OwnedBookResponse<string[]>>(
+--    "owned-books/genre-list",
+--  );
+--  return response.data;
+-+  try {
+-+    const response = await api.get<OwnedBookResponse<string[]>>(
+-+      "owned-books/genre-list",
+-+    );
+-+    return response.data;
+-+  } catch (error) {
+-+    if (axios.isAxiosError(error)) {
+-+      throw new Error(
+-+        error.response?.data.message || "장르 리스트 불러오기를 실패했습니다..",
+-+        { cause: error },
+-+      );
+-+    }
+-+    throw error;
+-+  }
+-+}
+-+
+-+type ReadingStatusData = { readingStatus: ReadingStatus; count: number };
+-+export async function getReadingStatusCount() {
+-+  try {
+-+    const response = await api.get<
+-+      OwnedBookResponse<ReadingStatusData[] | ReadingStatusData>
+-+    >("owned-books/reading-status-counts");
+-+    return response.data;
+-+  } catch (error) {
+-+    if (axios.isAxiosError(error)) {
+-+      throw new Error(
+-+        error.response?.data.message || "책읽기갯수 불러오기 실패",
+-+        { cause: error },
+-+      );
+-+    }
+-+    throw error;
+-+  }
+- }
+-diff --git a/src/feature/ownedBook/form/OwnedBookAddForm.tsx b/src/feature/ownedBook/form/OwnedBookAddForm.tsx
+-index ceb54d1..9b3aafd 100644
+---- a/src/feature/ownedBook/form/OwnedBookAddForm.tsx
+-+++ b/src/feature/ownedBook/form/OwnedBookAddForm.tsx
+-@@ -5,12 +5,24 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+- import { useForm } from "react-hook-form";
+- import {
+-   createOwnedBook,
+-+  getOwnedBooks,
+-   getOwnedGenreList,
+-   type OwnedBookFormType,
+- } from "../api/ownedBooks";
+- import { ownedBookSchema } from "../model/ownedBookSchema";
+- import { OwnedBookFormFields } from "./OwnedBookFormFields";
+- import { FormLayout, FormPanel } from "@/components/layout/Form";
+-+import { useState } from "react";
+-+import {
+-+  AlertDialog,
+-+  AlertDialogAction,
+-+  AlertDialogCancel,
+-+  AlertDialogContent,
+-+  AlertDialogDescription,
+-+  AlertDialogFooter,
+-+  AlertDialogHeader,
+-+  AlertDialogTitle,
+-+} from "@/components/ui/alert-dialog";
+- 
+- const init: OwnedBookFormType = {
+-   bookTitle: "",
+-@@ -24,6 +36,9 @@ const init: OwnedBookFormType = {
+- };
+- 
+- export function OwnedBookAddForm() {
+-+  const [pendingBook, setPendingBook] = useState<OwnedBookFormType | null>(
+-+    null,
+-+  );
+-   const queryClient = useQueryClient();
+-   const { control, handleSubmit, reset } = useForm<OwnedBookFormType>({
+-     defaultValues: init,
+-@@ -33,6 +48,12 @@ export function OwnedBookAddForm() {
+-     queryKey: ["ownedBookGenre"],
+-     queryFn: getOwnedGenreList,
+-   });
+-+
+-+  const { data: bookList } = useQuery({
+-+    queryKey: ["ownedBookList"],
+-+    queryFn: getOwnedBooks,
+-+  });
+-+
+-   const mutation = useMutation({
+-     mutationFn: createOwnedBook,
+-     onSuccess: () => {
+-@@ -48,8 +69,26 @@ export function OwnedBookAddForm() {
+-   });
+- 
+-   const onSubmit = (data: OwnedBookFormType) => {
+-+    const isDuplicate = bookList?.data.some(
+-+      (book) => book.bookTitle.trim() === data.bookTitle.trim(),
+-+    );
+-+    if (isDuplicate) {
+-+      setPendingBook(data);
+-+      return;
+-+    }
+-+
+-     mutation.mutate(data);
+-   };
+-+  const confirmSubmit = () => {
+-+    if (!pendingBook) return;
+-+
+-+    mutation.mutate(pendingBook);
+-+    setPendingBook(null);
+-+  };
+-+
+-+  const cancelSubmit = () => {
+-+    setPendingBook(null);
+-+  };
+- 
+-   return (
+-     <FormLayout onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+-@@ -64,6 +103,23 @@ export function OwnedBookAddForm() {
+-           </Button>
+-         </div>
+-       </FormPanel>
+-+      <AlertDialog
+-+        open={pendingBook !== null}
+-+        onOpenChange={(open) => {
+-+          if (!open) setPendingBook(null);
+-+        }}
+-+      >
+-+        <AlertDialogContent>
+-+          <AlertDialogHeader>
+-+            <AlertDialogTitle>중복되는 책 제목이 있습니다!</AlertDialogTitle>
+-+            <AlertDialogDescription>등록하시겠습니까?</AlertDialogDescription>
+-+          </AlertDialogHeader>
+-+          <AlertDialogFooter>
+-+            <AlertDialogCancel onClick={cancelSubmit}>취소</AlertDialogCancel>
+-+            <AlertDialogAction onClick={confirmSubmit}>등록</AlertDialogAction>
+-+          </AlertDialogFooter>
+-+        </AlertDialogContent>
+-+      </AlertDialog>
+-     </FormLayout>
+-   );
+- }
+-diff --git a/src/feature/wishBook/form/BookAddForm.tsx b/src/feature/wishBook/form/BookAddForm.tsx
+-index 0fd22ba..4362eb4 100644
+---- a/src/feature/wishBook/form/BookAddForm.tsx
+-+++ b/src/feature/wishBook/form/BookAddForm.tsx
+-@@ -1,13 +1,23 @@
+-+import { FormLayout, FormPanel } from "@/components/layout/Form";
+-+import {
+-+  AlertDialog,
+-+  AlertDialogAction,
+-+  AlertDialogCancel,
+-+  AlertDialogContent,
+-+  AlertDialogDescription,
+-+  AlertDialogFooter,
+-+  AlertDialogHeader,
+-+  AlertDialogTitle,
+-+} from "@/components/ui/alert-dialog";
+- import { Button } from "@/components/ui/button";
+-+import { getOwnedBooks } from "@/feature/ownedBook/api/ownedBooks";
+-+import { toast } from "@/lib/toast";
+- import { zodResolver } from "@hookform/resolvers/zod";
+- import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+-+import { useState } from "react";
+- import { useForm } from "react-hook-form";
+- import z from "zod";
+- import { createBook, getWishGenreList } from "../api/books";
+--
+--import { toast } from "@/lib/toast";
+--
+--import { FormLayout, FormPanel } from "@/components/layout/Form";
+- import { WishBookFormFields } from "./WishBookFormFields";
+- 
+- const bookAddSchema = z.object({
+-@@ -31,7 +41,9 @@ const init = {
+-   publisher: "",
+-   ISBN: "",
+- };
+-+
+- export function BookAddForm() {
+-+  const [pendingBook, setPendingBook] = useState<BookFormType | null>(null);
+-   const queryClient = useQueryClient();
+-   const { control, handleSubmit, reset } = useForm<BookFormType>({
+-     defaultValues: init,
+-@@ -43,13 +55,18 @@ export function BookAddForm() {
+-     queryFn: getWishGenreList,
+-   });
+- 
+-+  const { data: ownedBookList } = useQuery({
+-+    queryKey: ["ownedBookList"],
+-+    queryFn: getOwnedBooks,
+-+  });
+-+
+-   const mutation = useMutation({
+-     mutationFn: createBook,
+-     onSuccess: () => {
+-       queryClient.invalidateQueries({
+-         queryKey: ["bookList"],
+-       });
+--      toast.success("등록성공");
+-+      toast.success("등록 성공");
+-       reset(init);
+-     },
+-     onError: (error) => {
+-@@ -59,21 +76,61 @@ export function BookAddForm() {
+- 
+-   const bookAddSubmit = (data: BookFormType) => {
+-     const result = bookAddSchema.parse(data);
+-+    const isDuplicateOwnedBook = ownedBookList?.data.some(
+-+      (book) => book.bookTitle.trim() === result.bookTitle.trim(),
+-+    );
+-+
+-+    if (isDuplicateOwnedBook) {
+-+      setPendingBook(result);
+-+      return;
+-+    }
+-+
+-     mutation.mutate(result);
+-   };
+-+
+-+  const confirmSubmit = () => {
+-+    if (!pendingBook) return;
+-+
+-+    mutation.mutate(pendingBook);
+-+    setPendingBook(null);
+-+  };
+-+
+-+  const cancelSubmit = () => {
+-+    setPendingBook(null);
+-+  };
+-+
+-   return (
+--    <FormPanel>
+--      <FormLayout onSubmit={handleSubmit(bookAddSubmit)}>
+-+    <FormLayout onSubmit={handleSubmit(bookAddSubmit)}>
+-+      <FormPanel>
+-         <WishBookFormFields
+-           control={control}
+-           genreList={genreList?.data ?? []}
+-         />
+-         <div className="flex justify-end">
+-           <Button type="submit" size={"lg"} disabled={mutation.isPending}>
+--            {mutation.isPending ? "저장 중..." : "저장"}
+-+            {mutation.isPending ? "저장 중.." : "저장"}
+-           </Button>
+-         </div>
+--      </FormLayout>
+--    </FormPanel>
+-+      </FormPanel>
+-+      <AlertDialog
+-+        open={pendingBook !== null}
+-+        onOpenChange={(open) => {
+-+          if (!open) setPendingBook(null);
+-+        }}
+-+      >
+-+        <AlertDialogContent>
+-+          <AlertDialogHeader>
+-+            <AlertDialogTitle>이미 소장도서에 있는 책입니다!</AlertDialogTitle>
+-+            <AlertDialogDescription>
+-+              위시리스트에 등록하시겠습니까?
+-+            </AlertDialogDescription>
+-+          </AlertDialogHeader>
+-+          <AlertDialogFooter>
+-+            <AlertDialogCancel onClick={cancelSubmit}>취소</AlertDialogCancel>
+-+            <AlertDialogAction onClick={confirmSubmit}>등록</AlertDialogAction>
+-+          </AlertDialogFooter>
+-+        </AlertDialogContent>
+-+      </AlertDialog>
+-+    </FormLayout>
+-   );
+- }
+-diff --git a/src/router/router.tsx b/src/router/router.tsx
+-index 5f71ced..cf63322 100644
+---- a/src/router/router.tsx
+-+++ b/src/router/router.tsx
+-@@ -5,6 +5,7 @@ import App from "../App";
+- import { Login } from "../feature/Auth/Login";
+- import { AuthRouter } from "./AuthRouter";
+- import { ErrorPage } from "./ErrorPage";
+-+import { ChartPage } from "@/feature/Chart/ChartPage";
+- 
+- export const router = createBrowserRouter([
+-   {
+-@@ -23,6 +24,11 @@ export const router = createBrowserRouter([
+-         path: "/owned",
+-         element: <OwnedBookPage />,
+-       },
+-+      {
+-+        path: "/chart",
+-+        errorElement: <ErrorPage />,
+-+        element: <ChartPage />,
+-+      },
+-     ],
+-   },
+-   {
+-@@ -30,6 +36,7 @@ export const router = createBrowserRouter([
+-     errorElement: <ErrorPage />,
+-     element: <Login />,
+-   },
+-+
+-   // {
+-   //   path: "/register",
+-   //   errorElement: <ErrorPage />,
+diff --git "a/docs/[\352\260\234\353\260\234\354\235\274\354\247\200 - 20260722] ui \352\260\234\354\204\240 2.md" "b/docs/[\352\260\234\353\260\234\354\235\274\354\247\200 - 20260722] ui \352\260\234\354\204\240 2.md"
+new file mode 100644
+index 0000000..60b7bdd
+--- /dev/null
++++ "b/docs/[\352\260\234\353\260\234\354\235\274\354\247\200 - 20260722] ui \352\260\234\354\204\240 2.md"	
+@@ -0,0 +1,27 @@
++# 이슈
++
++1. table 필터 분리 이슈
++
++## table 필터 분리
++
++테이블 상단의 검색필터와 열 설정 ui가 반복되는점과 독립적인 역할을 한다는점을 들어 분리를 시도했습니다.
++
++## 이슈발생
++
++table 객체를 props로 전달하고, 해당 ui를 분리하는데 까진 성공했습니다.
++하지만 분리된 필터와 열 설정이 제대로 동작하지 않는 일이 발생했습니다.
++필터는 아무런 값을 입력해도 값이 입력되지않았고, 열 설정또한 작동하지 않았습니다.
++
++## 왜 이런일이?
++
++https://github.com/TanStack/table/issues/6117
++table 객체는 내부 상태가 변경돼도 동일한 참조를 유지합니다. React Compiler가 이 내부 상태 변화를 렌더링 의존성으로 추적하지 못해, 이전 렌더링 결과를 재사용한 것으로 추정했습니다. 유사한 현상이 TanStack Table 이슈 #6117에도 보고되어 있어 React Compiler와의 호환성 문제로 판단했습니다.
++
++## 해결방법
++
++"use no memo"로 우회할 수 있었지만, 컴파일러 최적화를 비활성화하면서까지 분리할 실익이 크지 않다고 판단했습니다. 해당 UI는 테이블 상태와 결합도가 높으므로 기존 컴포넌트 내부에 유지했습니다.
++
++## 한마디
++
++이렇게 확실하게 이유를 알수없는 버그가 제 코드에도 발생한다는점이 꽤 놀라웠습니다.
++라이브러리와 컴파일러의 충돌이라는점이 생소하기도 합니다.
+diff --git a/src/components/customUi/CustomAlertDialog.tsx b/src/components/customUi/CustomAlertDialog.tsx
+index 3d980f3..4b29941 100644
+--- a/src/components/customUi/CustomAlertDialog.tsx
++++ b/src/components/customUi/CustomAlertDialog.tsx
+@@ -1,3 +1,4 @@
++import type { VariantProps } from "class-variance-authority";
+ import {
+   AlertDialog,
+   AlertDialogAction,
+@@ -10,7 +11,7 @@ import {
+   AlertDialogTrigger,
+ } from "../ui/alert-dialog";
+ import { Button } from "../ui/button";
+-import type { ButtonVariant } from "../ui/button-variants";
++import type { buttonVariants } from "../ui/button.tsx";
+ 
+ type CustomAlertDialogProps = {
+   disabled: boolean;
+@@ -18,7 +19,7 @@ type CustomAlertDialogProps = {
+   description: string;
+   actionText: string;
+   buttonText: string;
+-  variant: ButtonVariant;
++  variant: VariantProps<typeof buttonVariants>["variant"];
+   actionFn: () => void;
+ };
+ 
+diff --git a/src/components/customUi/CustomPopUp.tsx b/src/components/customUi/CustomPopUp.tsx
+index d5ccf40..2389d09 100644
+--- a/src/components/customUi/CustomPopUp.tsx
++++ b/src/components/customUi/CustomPopUp.tsx
+@@ -36,7 +36,7 @@ export function CustomPopup({
+     <Popover open={isOpen} onOpenChange={setIsOpen}>
+       <div className="grid gap-2">
+         <PopoverTrigger asChild>
+-          <Input value={selectedValue} readOnly />
++          <Input value={selectedValue} readOnly placeholder="장르" />
+         </PopoverTrigger>
+       </div>
+       <PopoverContent className={className}>
+diff --git a/src/components/ui/FormInputField.tsx b/src/components/customUi/FormInputField.tsx
+similarity index 96%
+rename from src/components/ui/FormInputField.tsx
+rename to src/components/customUi/FormInputField.tsx
+index f56217e..b482c5d 100644
+--- a/src/components/ui/FormInputField.tsx
++++ b/src/components/customUi/FormInputField.tsx
+@@ -46,7 +46,7 @@ export function FormInputField<T extends FieldValues>({
+             id={id}
+             aria-invalid={fieldState.invalid}
+             autoComplete={autoComplete}
+-            placeholder={placeholder}
++            placeholder={placeholder ?? label}
+             type={type}
+             value={field.value}
+           />
+diff --git a/src/components/customUi/ThemeToggle.tsx b/src/components/customUi/ThemeToggle.tsx
+new file mode 100644
+index 0000000..3607869
+--- /dev/null
++++ b/src/components/customUi/ThemeToggle.tsx
+@@ -0,0 +1,15 @@
++import { useThemeStore } from "@/store/themeStore";
++import { Label } from "../ui/label";
++import { Switch } from "../ui/switch";
++
++export function ThemeToggle() {
++  const isDark = useThemeStore((state) => state.isDark);
++  const toggleTheme = useThemeStore((state) => state.toggleTheme);
++
++  return (
++    <div className="flex items-center space-x-2">
++      <Switch id="dark-mode" checked={isDark} onClick={toggleTheme} />
++      <Label htmlFor="dark-mode">다크모드</Label>
++    </div>
++  );
++}
+diff --git a/src/components/header/TopbarActions.tsx b/src/components/header/TopbarActions.tsx
+index a1e1bde..f846add 100644
+--- a/src/components/header/TopbarActions.tsx
++++ b/src/components/header/TopbarActions.tsx
+@@ -1,6 +1,6 @@
+ import { logout } from "@/feature/Auth/api/authAPI";
+ import { Button } from "../ui/button";
+-import { ThemeToggle } from "../ui/ThemeToggle";
++import { ThemeToggle } from "../customUi/ThemeToggle";
+ import { useNavigate } from "react-router";
+ import {
+   AlertDialog,
+@@ -13,6 +13,7 @@ import {
+   AlertDialogTitle,
+   AlertDialogTrigger,
+ } from "../ui/alert-dialog";
++import { DoorOpen } from "lucide-react";
+ 
+ export function TopbarActions() {
+   const navigate = useNavigate();
+@@ -26,7 +27,10 @@ export function TopbarActions() {
+       <ThemeToggle />
+       <AlertDialog>
+         <AlertDialogTrigger asChild>
+-          <Button variant="outline">로그아웃</Button>
++          <Button variant="destructive">
++            <DoorOpen />
++            로그아웃
++          </Button>
+         </AlertDialogTrigger>
+         <AlertDialogContent>
+           <AlertDialogHeader>
+diff --git a/src/components/ui/ThemeToggle.tsx b/src/components/ui/ThemeToggle.tsx
+deleted file mode 100644
+index 09545f6..0000000
+--- a/src/components/ui/ThemeToggle.tsx
++++ /dev/null
+@@ -1,13 +0,0 @@
+-import { Button } from "@/components/ui/button";
+-import { useThemeStore } from "@/store/themeStore";
+-
+-export function ThemeToggle() {
+-  const isDark = useThemeStore((state) => state.isDark);
+-  const toggleTheme = useThemeStore((state) => state.toggleTheme);
+-
+-  return (
+-    <Button onClick={toggleTheme}>
+-      {isDark ? "라이트 모드" : "다크 모드"}
+-    </Button>
+-  );
+-}
+diff --git a/src/components/ui/button-variants.ts b/src/components/ui/button-variants.ts
+deleted file mode 100644
+index 188346d..0000000
+--- a/src/components/ui/button-variants.ts
++++ /dev/null
+@@ -1,39 +0,0 @@
+-import { cva, type VariantProps } from "class-variance-authority";
+-
+-export const buttonVariants = cva(
+-  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+-  {
+-    variants: {
+-      variant: {
+-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+-        outline:
+-          "border-border hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:bg-input/30",
+-        secondary:
+-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+-        ghost:
+-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+-        destructive:
+-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+-        link: "text-primary underline-offset-4 hover:underline",
+-      },
+-      size: {
+-        default:
+-          "h-7 gap-1 px-2 text-xs/relaxed has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+-        xs: "h-5 gap-1 rounded-sm px-2 text-[0.625rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-2.5",
+-        sm: "h-6 gap-1 px-2 text-xs/relaxed has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+-        lg: "h-8 gap-1 px-2.5 text-xs/relaxed has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-4",
+-        icon: "size-7 [&_svg:not([class*='size-'])]:size-3.5",
+-        "icon-xs": "size-5 rounded-sm [&_svg:not([class*='size-'])]:size-2.5",
+-        "icon-sm": "size-6 [&_svg:not([class*='size-'])]:size-3",
+-        "icon-lg": "size-8 [&_svg:not([class*='size-'])]:size-4",
+-      },
+-    },
+-    defaultVariants: {
+-      variant: "default",
+-      size: "default",
+-    },
+-  },
+-);
+-
+-export type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
+-export type ButtonSize = VariantProps<typeof buttonVariants>["size"];
+diff --git a/src/components/ui/button.tsx b/src/components/ui/button.tsx
+index 017d34c..33489b9 100644
+--- a/src/components/ui/button.tsx
++++ b/src/components/ui/button.tsx
+@@ -56,7 +56,10 @@ function Button({
+       data-slot="button"
+       data-variant={variant}
+       data-size={size}
+-      className={cn(buttonVariants({ variant, size, className }))}
++      className={cn(
++        buttonVariants({ variant, size, className }),
++        "cursor-pointer",
++      )}
+       {...props}
+     />
+   );
+diff --git a/src/components/ui/calendar.tsx b/src/components/ui/calendar.tsx
+index 8a54073..b4ec53b 100644
+--- a/src/components/ui/calendar.tsx
++++ b/src/components/ui/calendar.tsx
+@@ -1,16 +1,19 @@
+-import * as React from "react"
++import * as React from "react";
+ import {
+   DayPicker,
+   getDefaultClassNames,
+   type DayButton,
+   type Locale,
+-} from "react-day-picker"
++} from "react-day-picker";
+ 
+-import { cn } from "@/lib/utils"
+-import { Button } from "@/components/ui/button"
+-import { buttonVariants } from "@/components/ui/button-variants"
+-import { HugeiconsIcon } from "@hugeicons/react"
+-import { ArrowLeftIcon, ArrowRightIcon, ArrowDownIcon } from "@hugeicons/core-free-icons"
++import { cn } from "@/lib/utils";
++import { Button, buttonVariants } from "@/components/ui/button";
++import { HugeiconsIcon } from "@hugeicons/react";
++import {
++  ArrowLeftIcon,
++  ArrowRightIcon,
++  ArrowDownIcon,
++} from "@hugeicons/core-free-icons";
+ 
+ function Calendar({
+   className,
+@@ -23,9 +26,9 @@ function Calendar({
+   components,
+   ...props
+ }: React.ComponentProps<typeof DayPicker> & {
+-  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
++  buttonVariant?: React.ComponentProps<typeof Button>["variant"];
+ }) {
+-  const defaultClassNames = getDefaultClassNames()
++  const defaultClassNames = getDefaultClassNames();
+ 
+   return (
+     <DayPicker
+@@ -34,7 +37,7 @@ function Calendar({
+         "group/calendar bg-background p-3 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(6)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
+         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
+         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
+-        className
++        className,
+       )}
+       captionLayout={captionLayout}
+       locale={locale}
+@@ -47,88 +50,88 @@ function Calendar({
+         root: cn("w-fit", defaultClassNames.root),
+         months: cn(
+           "relative flex flex-col gap-4 md:flex-row",
+-          defaultClassNames.months
++          defaultClassNames.months,
+         ),
+         month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
+         nav: cn(
+           "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
+-          defaultClassNames.nav
++          defaultClassNames.nav,
+         ),
+         button_previous: cn(
+           buttonVariants({ variant: buttonVariant }),
+           "size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
+-          defaultClassNames.button_previous
++          defaultClassNames.button_previous,
+         ),
+         button_next: cn(
+           buttonVariants({ variant: buttonVariant }),
+           "size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
+-          defaultClassNames.button_next
++          defaultClassNames.button_next,
+         ),
+         month_caption: cn(
+           "flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)",
+-          defaultClassNames.month_caption
++          defaultClassNames.month_caption,
+         ),
+         dropdowns: cn(
+           "flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-medium",
+-          defaultClassNames.dropdowns
++          defaultClassNames.dropdowns,
+         ),
+         dropdown_root: cn(
+           "relative rounded-(--cell-radius)",
+-          defaultClassNames.dropdown_root
++          defaultClassNames.dropdown_root,
+         ),
+         dropdown: cn(
+           "absolute inset-0 bg-popover opacity-0",
+-          defaultClassNames.dropdown
++          defaultClassNames.dropdown,
+         ),
+         caption_label: cn(
+           "font-medium select-none",
+           captionLayout === "label"
+             ? "text-sm"
+             : "flex items-center gap-1 rounded-(--cell-radius) text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground",
+-          defaultClassNames.caption_label
++          defaultClassNames.caption_label,
+         ),
+         month_grid: cn("w-full border-collapse", defaultClassNames.month_grid),
+         weekdays: cn("flex", defaultClassNames.weekdays),
+         weekday: cn(
+           "flex-1 rounded-(--cell-radius) text-[0.8rem] font-normal text-muted-foreground select-none",
+-          defaultClassNames.weekday
++          defaultClassNames.weekday,
+         ),
+         week: cn("mt-2 flex w-full", defaultClassNames.week),
+         week_number_header: cn(
+           "w-(--cell-size) select-none",
+-          defaultClassNames.week_number_header
++          defaultClassNames.week_number_header,
+         ),
+         week_number: cn(
+           "text-[0.8rem] text-muted-foreground select-none",
+-          defaultClassNames.week_number
++          defaultClassNames.week_number,
+         ),
+         day: cn(
+           "group/day relative aspect-square h-full w-full rounded-(--cell-radius) p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
+           props.showWeekNumber
+             ? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-(--cell-radius)"
+             : "[&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
+-          defaultClassNames.day
++          defaultClassNames.day,
+         ),
+         range_start: cn(
+           "relative isolate z-0 rounded-l-(--cell-radius) bg-muted after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-muted",
+-          defaultClassNames.range_start
++          defaultClassNames.range_start,
+         ),
+         range_middle: cn("rounded-none", defaultClassNames.range_middle),
+         range_end: cn(
+           "relative isolate z-0 rounded-r-(--cell-radius) bg-muted after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-muted",
+-          defaultClassNames.range_end
++          defaultClassNames.range_end,
+         ),
+         today: cn(
+           "rounded-(--cell-radius) bg-muted text-foreground data-[selected=true]:rounded-none",
+-          defaultClassNames.today
++          defaultClassNames.today,
+         ),
+         outside: cn(
+           "text-muted-foreground aria-selected:text-muted-foreground",
+-          defaultClassNames.outside
++          defaultClassNames.outside,
+         ),
+         disabled: cn(
+           "text-muted-foreground opacity-50",
+-          defaultClassNames.disabled
++          defaultClassNames.disabled,
+         ),
+         hidden: cn("invisible", defaultClassNames.hidden),
+         ...classNames,
+@@ -142,24 +145,39 @@ function Calendar({
+               className={cn(className)}
+               {...props}
+             />
+-          )
++          );
+         },
+         Chevron: ({ className, orientation, ...props }) => {
+           if (orientation === "left") {
+             return (
+-              <HugeiconsIcon icon={ArrowLeftIcon} strokeWidth={2} className={cn("size-4", className)} {...props} />
+-            )
++              <HugeiconsIcon
++                icon={ArrowLeftIcon}
++                strokeWidth={2}
++                className={cn("size-4", className)}
++                {...props}
++              />
++            );
+           }
+ 
+           if (orientation === "right") {
+             return (
+-              <HugeiconsIcon icon={ArrowRightIcon} strokeWidth={2} className={cn("size-4", className)} {...props} />
+-            )
++              <HugeiconsIcon
++                icon={ArrowRightIcon}
++                strokeWidth={2}
++                className={cn("size-4", className)}
++                {...props}
++              />
++            );
+           }
+ 
+           return (
+-            <HugeiconsIcon icon={ArrowDownIcon} strokeWidth={2} className={cn("size-4", className)} {...props} />
+-          )
++            <HugeiconsIcon
++              icon={ArrowDownIcon}
++              strokeWidth={2}
++              className={cn("size-4", className)}
++              {...props}
++            />
++          );
+         },
+         DayButton: ({ ...props }) => (
+           <CalendarDayButton locale={locale} {...props} />
+@@ -171,13 +189,13 @@ function Calendar({
+                 {children}
+               </div>
+             </td>
+-          )
++          );
+         },
+         ...components,
+       }}
+       {...props}
+     />
+-  )
++  );
+ }
+ 
+ function CalendarDayButton({
+@@ -187,12 +205,12 @@ function CalendarDayButton({
+   locale,
+   ...props
+ }: React.ComponentProps<typeof DayButton> & { locale?: Partial<Locale> }) {
+-  const defaultClassNames = getDefaultClassNames()
++  const defaultClassNames = getDefaultClassNames();
+ 
+-  const ref = React.useRef<HTMLButtonElement>(null)
++  const ref = React.useRef<HTMLButtonElement>(null);
+   React.useEffect(() => {
+-    if (modifiers.focused) ref.current?.focus()
+-  }, [modifiers.focused])
++    if (modifiers.focused) ref.current?.focus();
++  }, [modifiers.focused]);
+ 
+   return (
+     <Button
+@@ -212,11 +230,11 @@ function CalendarDayButton({
+       className={cn(
+         "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-(--cell-radius) data-[range-end=true]:rounded-r-(--cell-radius) data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-muted data-[range-middle=true]:text-foreground data-[range-start=true]:rounded-(--cell-radius) data-[range-start=true]:rounded-l-(--cell-radius) data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground dark:hover:text-foreground [&>span]:text-xs [&>span]:opacity-70",
+         defaultClassNames.day,
+-        className
++        className,
+       )}
+       {...props}
+     />
+-  )
++  );
+ }
+ 
+-export { Calendar, CalendarDayButton }
++export { Calendar, CalendarDayButton };
+diff --git a/src/components/ui/switch.tsx b/src/components/ui/switch.tsx
+new file mode 100644
+index 0000000..5f2e042
+--- /dev/null
++++ b/src/components/ui/switch.tsx
+@@ -0,0 +1,31 @@
++import * as React from "react"
++import { Switch as SwitchPrimitive } from "radix-ui"
++
++import { cn } from "@/lib/utils"
++
++function Switch({
++  className,
++  size = "default",
++  ...props
++}: React.ComponentProps<typeof SwitchPrimitive.Root> & {
++  size?: "sm" | "default"
++}) {
++  return (
++    <SwitchPrimitive.Root
++      data-slot="switch"
++      data-size={size}
++      className={cn(
++        "peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-transparent transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 data-[size=default]:h-[16.6px] data-[size=default]:w-[28px] data-[size=sm]:h-[14px] data-[size=sm]:w-[24px] dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 data-checked:bg-primary data-unchecked:bg-input dark:data-unchecked:bg-input/80 data-disabled:cursor-not-allowed data-disabled:opacity-50",
++        className
++      )}
++      {...props}
++    >
++      <SwitchPrimitive.Thumb
++        data-slot="switch-thumb"
++        className="pointer-events-none block rounded-full bg-background ring-0 transition-transform group-data-[size=default]/switch:size-3.5 group-data-[size=sm]/switch:size-3 group-data-[size=default]/switch:data-checked:translate-x-[calc(100%-2px)] group-data-[size=sm]/switch:data-checked:translate-x-[calc(100%-2px)] dark:data-checked:bg-primary-foreground group-data-[size=default]/switch:data-unchecked:translate-x-0 group-data-[size=sm]/switch:data-unchecked:translate-x-0 dark:data-unchecked:bg-foreground"
++      />
++    </SwitchPrimitive.Root>
++  )
++}
++
++export { Switch }
+diff --git a/src/feature/Auth/Login.tsx b/src/feature/Auth/Login.tsx
+index 2201f1d..aaf1971 100644
+--- a/src/feature/Auth/Login.tsx
++++ b/src/feature/Auth/Login.tsx
+@@ -6,7 +6,7 @@ import {
+   CardHeader,
+   CardTitle,
+ } from "@/components/ui/card";
+-import { FormInputField } from "@/components/ui/FormInputField";
++import { FormInputField } from "@/components/customUi/FormInputField";
+ import { api } from "@/lib/api";
+ import { useAuthStore } from "@/store/auth";
+ import { zodResolver } from "@hookform/resolvers/zod";
+@@ -92,13 +92,6 @@ export function Login() {
+               <Button className="w-full" type="submit">
+                 로그인
+               </Button>
+-              <Button
+-                variant="ghost"
+-                className="w-full"
+-                onClick={() => navigate("/register")}
+-              >
+-                회원가입
+-              </Button>
+             </CardFooter>
+           </Card>
+         </form>
+diff --git a/src/feature/Auth/Register.tsx b/src/feature/Auth/Register.tsx
+index d75456c..894f160 100644
+--- a/src/feature/Auth/Register.tsx
++++ b/src/feature/Auth/Register.tsx
+@@ -6,7 +6,7 @@ import {
+   CardHeader,
+   CardTitle,
+ } from "@/components/ui/card";
+-import { FormInputField } from "@/components/ui/FormInputField";
++import { FormInputField } from "@/components/customUi/FormInputField";
+ import { zodResolver } from "@hookform/resolvers/zod";
+ import axios from "axios";
+ import { useForm } from "react-hook-form";
+diff --git a/src/feature/ownedBook/OwnedBookDataTable.tsx b/src/feature/ownedBook/OwnedBookDataTable.tsx
+index 3fb4d6c..0c51124 100644
+--- a/src/feature/ownedBook/OwnedBookDataTable.tsx
++++ b/src/feature/ownedBook/OwnedBookDataTable.tsx
+@@ -101,76 +101,80 @@ export function OwnedBookDataTable<TValue>({
+ 
+   return (
+     <div>
+-      <div className="flex items-center gap-2 py-4">
+-        <Input
+-          placeholder="책 제목 필터"
+-          value={
+-            (table.getColumn("bookTitle")?.getFilterValue() as string) ?? ""
+-          }
+-          onChange={(event) =>
+-            table.getColumn("bookTitle")?.setFilterValue(event.target.value)
+-          }
+-          className="max-w-sm"
+-        />
+-        <Input
+-          placeholder="장르 필터"
+-          value={(table.getColumn("genre")?.getFilterValue() as string) ?? ""}
+-          onChange={(event) =>
+-            table.getColumn("genre")?.setFilterValue(event.target.value)
+-          }
+-          className="max-w-sm"
+-        />
+-        <AlertDialog>
+-          <AlertDialogTrigger asChild>
+-            <Button
+-              variant="destructive"
+-              disabled={table.getSelectedRowModel().rows.length === 0}
+-            >
+-              삭제
+-            </Button>
+-          </AlertDialogTrigger>
+-          <AlertDialogContent>
+-            <AlertDialogHeader>
+-              <AlertDialogTitle>도서 삭제</AlertDialogTitle>
+-              <AlertDialogDescription>
+-                선택한 {table.getSelectedRowModel().rows.length}권의 책을
+-                삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+-              </AlertDialogDescription>
+-            </AlertDialogHeader>
+-            <AlertDialogFooter>
+-              <AlertDialogCancel>취소</AlertDialogCancel>
+-              <AlertDialogAction variant="destructive" onClick={handleDelete}>
++      <div className="flex flex-wrap items-center gap-3 py-4">
++        <div className="flex flex-1 flex-wrap gap-2">
++          <Input
++            placeholder="책 제목 필터"
++            value={
++              (table.getColumn("bookTitle")?.getFilterValue() as string) ?? ""
++            }
++            onChange={(event) =>
++              table.getColumn("bookTitle")?.setFilterValue(event.target.value)
++            }
++            className="min-w-56 flex-1 sm:max-w-sm"
++          />
++          <Input
++            placeholder="장르 필터"
++            value={(table.getColumn("genre")?.getFilterValue() as string) ?? ""}
++            onChange={(event) =>
++              table.getColumn("genre")?.setFilterValue(event.target.value)
++            }
++            className="min-w-56 flex-1 sm:max-w-sm"
++          />
++        </div>
++        <div className="flex flex-wrap items-center gap-2">
++          <AlertDialog>
++            <AlertDialogTrigger asChild>
++              <Button
++                variant="destructive"
++                disabled={table.getSelectedRowModel().rows.length === 0}
++              >
+                 삭제
+-              </AlertDialogAction>
+-            </AlertDialogFooter>
+-          </AlertDialogContent>
+-        </AlertDialog>
+-        <DropdownMenu>
+-          <DropdownMenuTrigger asChild>
+-            <Button variant="outline" className="ml-auto">
+-              Columns
+-            </Button>
+-          </DropdownMenuTrigger>
+-          <DropdownMenuContent align="end">
+-            {table
+-              .getAllColumns()
+-              .filter((column) => column.getCanHide())
+-              .map((column) => {
+-                return (
+-                  <DropdownMenuCheckboxItem
+-                    key={column.id}
+-                    className="capitalize"
+-                    checked={column.getIsVisible()}
+-                    onCheckedChange={(value) =>
+-                      column.toggleVisibility(!!value)
+-                    }
+-                  >
+-                    {column.id}
+-                  </DropdownMenuCheckboxItem>
+-                );
+-              })}
+-          </DropdownMenuContent>
+-        </DropdownMenu>
++              </Button>
++            </AlertDialogTrigger>
++            <AlertDialogContent>
++              <AlertDialogHeader>
++                <AlertDialogTitle>도서 삭제</AlertDialogTitle>
++                <AlertDialogDescription>
++                  선택한 {table.getSelectedRowModel().rows.length}권의 책을
++                  삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
++                </AlertDialogDescription>
++              </AlertDialogHeader>
++              <AlertDialogFooter>
++                <AlertDialogCancel>취소</AlertDialogCancel>
++                <AlertDialogAction variant="destructive" onClick={handleDelete}>
++                  삭제
++                </AlertDialogAction>
++              </AlertDialogFooter>
++            </AlertDialogContent>
++          </AlertDialog>
++        </div>
++        <div className="ml-auto">
++          <DropdownMenu>
++            <DropdownMenuTrigger asChild>
++              <Button variant="outline">열 설정</Button>
++            </DropdownMenuTrigger>
++            <DropdownMenuContent align="end">
++              {table
++                .getAllColumns()
++                .filter((column) => column.getCanHide())
++                .map((column) => {
++                  return (
++                    <DropdownMenuCheckboxItem
++                      key={column.id}
++                      className="capitalize"
++                      checked={column.getIsVisible()}
++                      onCheckedChange={(value) =>
++                        column.toggleVisibility(!!value)
++                      }
++                    >
++                      {column.columnDef.meta?.label ?? column.id}
++                    </DropdownMenuCheckboxItem>
++                  );
++                })}
++            </DropdownMenuContent>
++          </DropdownMenu>
++        </div>
+       </div>
+       <div className="overflow-hidden rounded-md border">
+         <Table>
+@@ -241,7 +245,7 @@ export function OwnedBookDataTable<TValue>({
+           onClick={() => table.previousPage()}
+           disabled={!table.getCanPreviousPage()}
+         >
+-          Previous
++          이전
+         </Button>
+         <Button
+           variant="outline"
+@@ -249,7 +253,7 @@ export function OwnedBookDataTable<TValue>({
+           onClick={() => table.nextPage()}
+           disabled={!table.getCanNextPage()}
+         >
+-          Next
++          다음
+         </Button>
+       </div>
+     </div>
+diff --git a/src/feature/ownedBook/OwnedBookTable.tsx b/src/feature/ownedBook/OwnedBookTable.tsx
+index cef56ed..de3f49b 100644
+--- a/src/feature/ownedBook/OwnedBookTable.tsx
++++ b/src/feature/ownedBook/OwnedBookTable.tsx
+@@ -1,10 +1,17 @@
+ import { Button } from "@/components/ui/button";
+-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
++import {
++  Card,
++  CardContent,
++  CardDescription,
++  CardFooter,
++  CardHeader,
++  CardTitle,
++} from "@/components/ui/card";
+ import { Checkbox } from "@/components/ui/checkbox";
+ import { useOwnedBookStore } from "@/store/ownedBookStore";
+ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+ import type { ColumnDef } from "@tanstack/react-table";
+-import { ArrowUpDown } from "lucide-react";
++import { ArrowUpDown, CircleAlert, RotateCcw } from "lucide-react";
+ import type { OwnedBook } from "../bookType";
+ import { OwnedBookDataTable } from "./OwnedBookDataTable";
+ import { toast } from "@/lib/toast";
+@@ -36,6 +43,9 @@ const columns: ColumnDef<OwnedBook>[] = [
+   {
+     accessorKey: "id",
+     header: "id",
++    meta: {
++      label: "ID",
++    },
+   },
+   {
+     accessorKey: "bookTitle",
+@@ -50,28 +60,46 @@ const columns: ColumnDef<OwnedBook>[] = [
+         </Button>
+       );
+     },
++    meta: {
++      label: "책 제목",
++    },
+   },
+   {
+     accessorKey: "author",
+     header: "저자",
++    meta: {
++      label: "저자",
++    },
+   },
+   {
+     accessorKey: "publisher",
+     header: "출판사",
++    meta: {
++      label: "출판사",
++    },
+   },
+   {
+     accessorKey: "genre",
+     header: "장르",
++    meta: {
++      label: "장르",
++    },
+   },
+   {
+     accessorKey: "short_review",
+     header: "짧은 평",
+     cell: ({ row }) => row.original.shortReview ?? "-",
++    meta: {
++      label: "짧은 평",
++    },
+   },
+   {
+     accessorKey: "isbn",
+     header: "ISBN",
+     cell: ({ row }) => row.original.isbn ?? "-",
++    meta: {
++      label: "ISBN",
++    },
+   },
+   {
+     accessorKey: "readingStatus",
+@@ -87,6 +115,9 @@ const columns: ColumnDef<OwnedBook>[] = [
+       };
+       return statusMap[status] || status;
+     },
++    meta: {
++      label: "상태",
++    },
+   },
+   {
+     accessorKey: "purchasedAt",
+@@ -95,6 +126,9 @@ const columns: ColumnDef<OwnedBook>[] = [
+       const date = row.original.purchasedAt;
+       return date ? new Date(date).toLocaleDateString() : "-";
+     },
++    meta: {
++      label: "구매일",
++    },
+   },
+ ];
+ 
+@@ -102,7 +136,7 @@ export function OwnedBookTable() {
+   const setBook = useOwnedBookStore((state) => state.setOwnedBook);
+   const queryClient = useQueryClient();
+ 
+-  const { data, isError } = useQuery({
++  const { data, isError, isFetching, refetch } = useQuery({
+     queryKey: ["ownedBookList"],
+     queryFn: getOwnedBooks,
+   });
+@@ -120,10 +154,34 @@ export function OwnedBookTable() {
+ 
+   if (isError) {
+     return (
+-      <Card>
+-        <CardHeader>
+-          <CardTitle>오류가 발생했습니다.</CardTitle>
++      <Card className="min-h-64 justify-center py-8" role="alert">
++        <CardHeader className="items-center gap-3 text-center">
++          <div className="flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
++            <CircleAlert className="size-5" aria-hidden="true" />
++          </div>
++          <CardTitle className="text-base">
++            소장 도서 목록을 불러오지 못했습니다
++          </CardTitle>
++          <CardDescription className="max-w-md">
++            네트워크 상태를 확인한 후 다시 시도해주세요. 문제가 계속되면 잠시
++            후 다시 이용해주세요.
++          </CardDescription>
+         </CardHeader>
++        <CardFooter className="justify-center">
++          <Button
++            variant="outline"
++            onClick={() => void refetch()}
++            disabled={isFetching}
++          >
++            <RotateCcw
++              className={isFetching ? "animate-spin" : undefined}
++              aria-hidden="true"
++            />
++            <span aria-live="polite">
++              {isFetching ? "다시 불러오는 중..." : "다시 시도"}
++            </span>
++          </Button>
++        </CardFooter>
+       </Card>
+     );
+   }
+diff --git a/src/feature/ownedBook/form/OwnedBookAddForm.tsx b/src/feature/ownedBook/form/OwnedBookAddForm.tsx
+index 9b3aafd..8c65eb5 100644
+--- a/src/feature/ownedBook/form/OwnedBookAddForm.tsx
++++ b/src/feature/ownedBook/form/OwnedBookAddForm.tsx
+@@ -56,10 +56,16 @@ export function OwnedBookAddForm() {
+ 
+   const mutation = useMutation({
+     mutationFn: createOwnedBook,
+-    onSuccess: () => {
+-      queryClient.invalidateQueries({
+-        queryKey: ["ownedBookList"],
+-      });
++    onSuccess: async () => {
++      await Promise.all([
++        queryClient.invalidateQueries({
++          queryKey: ["ownedBookList"],
++        }),
++        queryClient.invalidateQueries({
++          queryKey: ["ownedBookGenre"],
++        }),
++      ]);
++
+       toast.success("등록 성공");
+       reset(init);
+     },
+diff --git a/src/feature/ownedBook/form/OwnedBookEditForm.tsx b/src/feature/ownedBook/form/OwnedBookEditForm.tsx
+index ca0f4e2..0a2fdb8 100644
+--- a/src/feature/ownedBook/form/OwnedBookEditForm.tsx
++++ b/src/feature/ownedBook/form/OwnedBookEditForm.tsx
+@@ -64,9 +64,15 @@ export function OwnedBookEditForm() {
+ 
+   const mutation = useMutation({
+     mutationFn: updateOwnedBook,
+-    onSuccess: (d) => {
+-      console.log(d);
+-      queryClient.invalidateQueries({ queryKey: ["ownedBookList"] });
++    onSuccess: async () => {
++      await Promise.all([
++        queryClient.invalidateQueries({
++          queryKey: ["ownedBookList"],
++        }),
++        queryClient.invalidateQueries({
++          queryKey: ["ownedBookGenre"],
++        }),
++      ]);
+       toast.success("수정 성공");
+     },
+     onError: (error) => {
+diff --git a/src/feature/ownedBook/form/OwnedBookFormFields.tsx b/src/feature/ownedBook/form/OwnedBookFormFields.tsx
+index fdfa815..036098c 100644
+--- a/src/feature/ownedBook/form/OwnedBookFormFields.tsx
++++ b/src/feature/ownedBook/form/OwnedBookFormFields.tsx
+@@ -2,7 +2,7 @@ import { DatePicker } from "@/components/customUi/DatePicker";
+ import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
+ import { FormGrid } from "@/components/layout/Form";
+ import { Field, FieldLabel } from "@/components/ui/field";
+-import { FormInputField } from "@/components/ui/FormInputField";
++import { FormInputField } from "@/components/customUi/FormInputField";
+ import {
+   Select,
+   SelectContent,
+diff --git a/src/feature/wishBook/BookDataTable.tsx b/src/feature/wishBook/BookDataTable.tsx
+index d3df8c0..f1417fa 100644
+--- a/src/feature/wishBook/BookDataTable.tsx
++++ b/src/feature/wishBook/BookDataTable.tsx
+@@ -83,7 +83,6 @@ export function BookDataTable<TValue>({
+       rowSelection,
+     },
+   });
+-
+   const formatBookCopy = (book: BookDetail, index: number) => {
+     return `${index + 1}. ${book.bookTitle} 
+ - 저자: ${book.author}
+@@ -131,72 +130,76 @@ export function BookDataTable<TValue>({
+ 
+   return (
+     <div>
+-      <div className="flex items-center gap-2 py-4">
+-        <Input
+-          placeholder="책 제목 필터"
+-          value={
+-            (table.getColumn("bookTitle")?.getFilterValue() as string) ?? ""
+-          }
+-          onChange={(event) =>
+-            table.getColumn("bookTitle")?.setFilterValue(event.target.value)
+-          }
+-          className="max-w-sm"
+-        />
+-        <Input
+-          placeholder="장르 필터"
+-          value={(table.getColumn("genre")?.getFilterValue() as string) ?? ""}
+-          onChange={(event) =>
+-            table.getColumn("genre")?.setFilterValue(event.target.value)
+-          }
+-          className="max-w-sm"
+-        />
+-        <Button onClick={handleCopy}>복사</Button>
+-        <CustomAlertDialog
+-          buttonText="삭제"
+-          dialogTitle="도서 삭제"
+-          description={`선택한 ${table.getSelectedRowModel().rows.length}권의 책을
++      <div className="flex flex-wrap items-center gap-3 py-4">
++        <div className="flex flex-1 flex-wrap gap-2">
++          <Input
++            placeholder="책 제목 필터"
++            value={
++              (table.getColumn("bookTitle")?.getFilterValue() as string) ?? ""
++            }
++            onChange={(event) =>
++              table.getColumn("bookTitle")?.setFilterValue(event.target.value)
++            }
++            className="min-w-56 flex-1 sm:max-w-sm"
++          />
++          <Input
++            placeholder="장르 필터"
++            value={(table.getColumn("genre")?.getFilterValue() as string) ?? ""}
++            onChange={(event) =>
++              table.getColumn("genre")?.setFilterValue(event.target.value)
++            }
++            className="min-w-56 flex-1 sm:max-w-sm"
++          />
++        </div>
++        <div className="flex flex-wrap items-center gap-2">
++          <Button onClick={handleCopy}>복사</Button>
++          <CustomAlertDialog
++            buttonText="삭제"
++            dialogTitle="도서 삭제"
++            description={`선택한 ${table.getSelectedRowModel().rows.length}권의 책을
+                 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`}
+-          actionFn={handleDelete}
+-          disabled={table.getSelectedRowModel().rows.length === 0}
+-          variant={"destructive"}
+-          actionText="삭제"
+-        />
+-        <CustomAlertDialog
+-          buttonText="구매"
+-          dialogTitle="도서 구매"
+-          description={`선택한 ${table.getSelectedRowModel().rows.length}권의 책을
++            actionFn={handleDelete}
++            disabled={table.getSelectedRowModel().rows.length === 0}
++            variant={"destructive"}
++            actionText="삭제"
++          />
++          <CustomAlertDialog
++            buttonText="구매"
++            dialogTitle="도서 구매"
++            description={`선택한 ${table.getSelectedRowModel().rows.length}권의 책을
+                 구매처리 하시겠습니까?`}
+-          actionFn={handlePurchase}
+-          disabled={table.getSelectedRowModel().rows.length === 0}
+-          actionText="구매"
+-          variant={"link"}
+-        />
+-        <DropdownMenu>
+-          <DropdownMenuTrigger asChild>
+-            <Button variant="outline" className="ml-auto">
+-              Columns
+-            </Button>
+-          </DropdownMenuTrigger>
+-          <DropdownMenuContent align="end">
+-            {table
+-              .getAllColumns()
+-              .filter((column) => column.getCanHide())
+-              .map((column) => {
+-                return (
+-                  <DropdownMenuCheckboxItem
+-                    key={column.id}
+-                    className="capitalize"
+-                    checked={column.getIsVisible()}
+-                    onCheckedChange={(value) =>
+-                      column.toggleVisibility(!!value)
+-                    }
+-                  >
+-                    {column.id}
+-                  </DropdownMenuCheckboxItem>
+-                );
+-              })}
+-          </DropdownMenuContent>
+-        </DropdownMenu>
++            actionFn={handlePurchase}
++            disabled={table.getSelectedRowModel().rows.length === 0}
++            actionText="구매"
++            variant={"link"}
++          />
++        </div>
++        <div className="ml-auto">
++          <DropdownMenu>
++            <DropdownMenuTrigger asChild>
++              <Button variant="outline">열 설정</Button>
++            </DropdownMenuTrigger>
++            <DropdownMenuContent align="end">
++              {table
++                .getAllColumns()
++                .filter((column) => column.getCanHide())
++                .map((column) => {
++                  return (
++                    <DropdownMenuCheckboxItem
++                      key={column.id}
++                      className="capitalize"
++                      checked={column.getIsVisible()}
++                      onCheckedChange={(value) =>
++                        column.toggleVisibility(!!value)
++                      }
++                    >
++                      {column.columnDef.meta?.label ?? column.id}
++                    </DropdownMenuCheckboxItem>
++                  );
++                })}
++            </DropdownMenuContent>
++          </DropdownMenu>
++        </div>
+       </div>
+       <div className="overflow-hidden rounded-md border">
+         <Table>
+@@ -267,7 +270,7 @@ export function BookDataTable<TValue>({
+           onClick={() => table.previousPage()}
+           disabled={!table.getCanPreviousPage()}
+         >
+-          Previous
++          이전
+         </Button>
+         <Button
+           variant="outline"
+@@ -275,7 +278,7 @@ export function BookDataTable<TValue>({
+           onClick={() => table.nextPage()}
+           disabled={!table.getCanNextPage()}
+         >
+-          Next
++          다음
+         </Button>
+       </div>
+     </div>
+diff --git a/src/feature/wishBook/BookFilter.tsx b/src/feature/wishBook/BookFilter.tsx
+deleted file mode 100644
+index 8ea491f..0000000
+--- a/src/feature/wishBook/BookFilter.tsx
++++ /dev/null
+@@ -1,19 +0,0 @@
+-// 아직 안스는거같은데.
+-
+-import { Field, FieldLabel } from "@/components/ui/field";
+-import { Input } from "@/components/ui/input";
+-
+-export function BookFilter() {
+-  return (
+-    <div className="flex">
+-      <Field>
+-        <FieldLabel>책 이름</FieldLabel>
+-        <Input type="text" placeholder="책 이름" />
+-      </Field>
+-      <Field>
+-        <FieldLabel>장르</FieldLabel>
+-        <Input type="text" placeholder="장르" />
+-      </Field>
+-    </div>
+-  );
+-}
+diff --git a/src/feature/wishBook/BookTable.tsx b/src/feature/wishBook/BookTable.tsx
+index 5011897..eb1139b 100644
+--- a/src/feature/wishBook/BookTable.tsx
++++ b/src/feature/wishBook/BookTable.tsx
+@@ -1,11 +1,18 @@
+ import { Button } from "@/components/ui/button";
+-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
++import {
++  Card,
++  CardContent,
++  CardDescription,
++  CardFooter,
++  CardHeader,
++  CardTitle,
++} from "@/components/ui/card";
+ import { Checkbox } from "@/components/ui/checkbox";
+ import { api } from "@/lib/api";
+ import { useBookStore } from "@/store/bookStore";
+ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+ import type { ColumnDef } from "@tanstack/react-table";
+-import { ArrowUpDown } from "lucide-react";
++import { ArrowUpDown, CircleAlert, RotateCcw } from "lucide-react";
+ import type { BookDetail, BookResponse } from "../bookType";
+ import { BookDataTable } from "./BookDataTable";
+ import { deleteBooks, purchaseWishBook } from "./api/books";
+@@ -38,6 +45,9 @@ const columns: ColumnDef<BookDetail>[] = [
+   {
+     accessorKey: "id",
+     header: "id",
++    meta: {
++      label: "ID",
++    },
+   },
+   {
+     accessorKey: "bookTitle",
+@@ -52,30 +62,45 @@ const columns: ColumnDef<BookDetail>[] = [
+         </Button>
+       );
+     },
++    meta: {
++      label: "책 제목",
++    },
+   },
+   {
+     accessorKey: "author",
+     header: "저자",
++    meta: {
++      label: "저자",
++    },
+   },
+   {
+     accessorKey: "publisher",
+     header: "출판사",
++    meta: {
++      label: "출판사",
++    },
+   },
+   {
+     accessorKey: "genre",
+     header: "장르",
++    meta: {
++      label: "장르",
++    },
+   },
+   {
+     accessorKey: "ISBN",
+     header: "ISBN",
+     cell: ({ row }) => row.original.ISBN ?? "-",
++    meta: {
++      label: "ISBN",
++    },
+   },
+ ];
+ 
+ export function BookTable() {
+   const setBook = useBookStore((state) => state.setBook);
+   const queryClient = useQueryClient();
+-  const { data, isError } = useQuery({
++  const { data, isError, isFetching, refetch } = useQuery({
+     queryKey: ["bookList"],
+     queryFn: async (): Promise<BookResponse> => {
+       const { data } = await api.get<BookResponse>("/books");
+@@ -107,13 +132,38 @@ export function BookTable() {
+ 
+   if (isError) {
+     return (
+-      <Card>
+-        <CardHeader>
+-          <CardTitle>오류가 발생</CardTitle>
++      <Card className="min-h-64 justify-center py-8" role="alert">
++        <CardHeader className="items-center gap-3 text-center">
++          <div className="flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
++            <CircleAlert className="size-5" aria-hidden="true" />
++          </div>
++          <CardTitle className="text-base">
++            도서 목록을 불러오지 못했습니다
++          </CardTitle>
++          <CardDescription className="max-w-md">
++            네트워크 상태를 확인한 후 다시 시도해주세요. 문제가 계속되면 잠시
++            후 다시 이용해주세요.
++          </CardDescription>
+         </CardHeader>
++        <CardFooter className="justify-center">
++          <Button
++            variant="outline"
++            onClick={() => void refetch()}
++            disabled={isFetching}
++          >
++            <RotateCcw
++              className={isFetching ? "animate-spin" : undefined}
++              aria-hidden="true"
++            />
++            <span aria-live="polite">
++              {isFetching ? "다시 불러오는 중..." : "다시 시도"}
++            </span>
++          </Button>
++        </CardFooter>
+       </Card>
+     );
+   }
++
+   return (
+     <>
+       <Card className="justify-between">
+diff --git a/src/feature/wishBook/form/BookAddForm.tsx b/src/feature/wishBook/form/BookAddForm.tsx
+index 4362eb4..941d67f 100644
+--- a/src/feature/wishBook/form/BookAddForm.tsx
++++ b/src/feature/wishBook/form/BookAddForm.tsx
+@@ -55,6 +55,7 @@ export function BookAddForm() {
+     queryFn: getWishGenreList,
+   });
+ 
++  // 중복 도서 체크를 위한 쿼리
+   const { data: ownedBookList } = useQuery({
+     queryKey: ["ownedBookList"],
+     queryFn: getOwnedBooks,
+@@ -62,10 +63,15 @@ export function BookAddForm() {
+ 
+   const mutation = useMutation({
+     mutationFn: createBook,
+-    onSuccess: () => {
+-      queryClient.invalidateQueries({
+-        queryKey: ["bookList"],
+-      });
++    onSuccess: async () => {
++      await Promise.all([
++        queryClient.invalidateQueries({
++          queryKey: ["bookList"],
++        }),
++        queryClient.invalidateQueries({
++          queryKey: ["wishBookGenre"],
++        }),
++      ]);
+       toast.success("등록 성공");
+       reset(init);
+     },
+diff --git a/src/feature/wishBook/form/BookEditForm.tsx b/src/feature/wishBook/form/BookEditForm.tsx
+index d86136e..93150fe 100644
+--- a/src/feature/wishBook/form/BookEditForm.tsx
++++ b/src/feature/wishBook/form/BookEditForm.tsx
+@@ -53,8 +53,13 @@ export function BookEditForm() {
+ 
+   const mutation = useMutation({
+     mutationFn: updateBook,
+-    onSuccess: () => {
+-      queryClient.invalidateQueries({ queryKey: bookKeys.bookList });
++    onSuccess: async () => {
++      Promise.all([
++        queryClient.invalidateQueries({ queryKey: bookKeys.bookList }),
++        queryClient.invalidateQueries({
++          queryKey: ["wishBookGenre"],
++        }),
++      ]);
+       toast.success("수정 성공");
+     },
+     onError: (error) => {
+diff --git a/src/feature/wishBook/form/WishBookFormFields.tsx b/src/feature/wishBook/form/WishBookFormFields.tsx
+index 62e4cd6..01c888a 100644
+--- a/src/feature/wishBook/form/WishBookFormFields.tsx
++++ b/src/feature/wishBook/form/WishBookFormFields.tsx
+@@ -1,6 +1,6 @@
+ import { RhfPopUpInput } from "@/components/customUi/RhfPopUpInput";
+ import { FormGrid } from "@/components/layout/Form";
+-import { FormInputField } from "@/components/ui/FormInputField";
++import { FormInputField } from "@/components/customUi/FormInputField";
+ import type { Control, FieldValues } from "react-hook-form";
+ import type { BookFormType } from "./BookAddForm";
+ 
+diff --git a/src/store/bookStore.ts b/src/store/bookStore.ts
+index 2fee9b4..dc8d115 100644
+--- a/src/store/bookStore.ts
++++ b/src/store/bookStore.ts
+@@ -10,7 +10,8 @@ type BookStore = {
+ export const useBookStore = create<BookStore>((set) => ({
+   book: null,
+ 
+-  setBook: (book: BookDetail) => set({ book }),
++  setBook: (book: BookDetail) =>
++    set({ book: { ...book, ISBN: book.ISBN ?? "" } }),
+ 
+   clearBook: () => set({ book: null }),
+ }));
+diff --git a/src/store/ownedBookStore.ts b/src/store/ownedBookStore.ts
+index 9217eee..163b933 100644
+--- a/src/store/ownedBookStore.ts
++++ b/src/store/ownedBookStore.ts
+@@ -20,6 +20,7 @@ export const useOwnedBookStore = create<OwnedBookStore>((set) => ({
+       ownedBook: {
+         ...ownedBook,
+         purchasedAt: new Date(ownedBook.purchasedAt),
++        isbn: ownedBook.isbn ?? "",
+       },
+     }),
+ 
+diff --git a/src/types/tableMeta.ts b/src/types/tableMeta.ts
+new file mode 100644
+index 0000000..99c603c
+--- /dev/null
++++ b/src/types/tableMeta.ts
+@@ -0,0 +1,7 @@
++import type { RowData } from "@tanstack/react-table";
++
++declare module "@tanstack/react-table" {
++  interface ColumnMeta<TData extends RowData, TValue> {
++    label?: string;
++  }
++}

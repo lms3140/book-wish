@@ -54,7 +54,7 @@ export function BookEditForm() {
   const mutation = useMutation({
     mutationFn: updateBook,
     onSuccess: async () => {
-      Promise.all([
+      await Promise.all([
         queryClient.invalidateQueries({ queryKey: bookKeys.bookList }),
         queryClient.invalidateQueries({
           queryKey: ["wishBookGenre"],
