@@ -53,8 +53,13 @@ export function BookEditForm() {
 
   const mutation = useMutation({
     mutationFn: updateBook,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookKeys.bookList });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: bookKeys.bookList }),
+        queryClient.invalidateQueries({
+          queryKey: ["wishBookGenre"],
+        }),
+      ]);
       toast.success("수정 성공");
     },
     onError: (error) => {

@@ -64,9 +64,15 @@ export function OwnedBookEditForm() {
 
   const mutation = useMutation({
     mutationFn: updateOwnedBook,
-    onSuccess: (d) => {
-      console.log(d);
-      queryClient.invalidateQueries({ queryKey: ["ownedBookList"] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["ownedBookList"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["ownedBookGenre"],
+        }),
+      ]);
       toast.success("수정 성공");
     },
     onError: (error) => {

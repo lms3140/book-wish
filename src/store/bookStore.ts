@@ -10,7 +10,8 @@ type BookStore = {
 export const useBookStore = create<BookStore>((set) => ({
   book: null,
 
-  setBook: (book: BookDetail) => set({ book }),
+  setBook: (book: BookDetail) =>
+    set({ book: { ...book, ISBN: book.ISBN ?? "" } }),
 
   clearBook: () => set({ book: null }),
 }));

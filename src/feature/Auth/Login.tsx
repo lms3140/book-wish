@@ -92,13 +92,6 @@ export function Login() {
               <Button className="w-full" type="submit">
                 로그인
               </Button>
-              <Button
-                variant="ghost"
-                className="w-full"
-                onClick={() => navigate("/register")}
-              >
-                회원가입
-              </Button>
             </CardFooter>
           </Card>
         </form>
