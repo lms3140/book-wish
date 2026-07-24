@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -16,19 +14,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bar, BarChart, Pie, PieChart, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import { getGenreCount } from "./API/chartAPI";
 
-const CHART_COLORS = [
-  "var(--color-chart-1)",
-  "var(--color-chart-2)",
-  "var(--color-chart-3)",
-  "var(--color-chart-4)",
-  "var(--color-chart-5)",
-];
-
 export function GenreChart() {
-  const [chartMode, setChartMode] = useState<"pie" | "bar">("pie");
+  const [showAll, setShowAll] = useState(false);
   const { data, isError, isLoading } = useQuery({
     queryKey: ["ownedBookGenreCounts"],
     queryFn: getGenreCount,
@@ -39,21 +29,13 @@ export function GenreChart() {
         },
       };
 
-      const chartData = data.map((item, index) => {
-        const key = `genre-${index}`;
-
-        chartConfig[key] = {
-          label: item.genre,
-          color: CHART_COLORS[index % CHART_COLORS.length],
-        };
-
-        return {
-          key,
+      const chartData = [...data]
+        .sort((a, b) => b.count - a.count)
+        .map((item, index) => ({
           count: item.count,
-          fill: `var(--color-${key})`,
+          fill: `var(--chart-${(index % 5) + 1})`,
           genre: item.genre,
-        };
-      });
+        }));
       return {
         chartData,
         chartConfig,
@@ -61,51 +43,48 @@ export function GenreChart() {
       };
     },
   });
+  const visibleChartData = showAll
+    ? data?.chartData
+    : data?.chartData.slice(0, 15);
+
   return (
-    <Card className="w-full">
+    <Card className="min-w-0 w-full">
       <CardHeader>
         <CardTitle>장르별 도서 보유 개수</CardTitle>
-        <CardAction>
-          <Button
-            onClick={() =>
-              setChartMode((mode) => (mode === "pie" ? "bar" : "pie"))
-            }
-          >
-            {chartMode === "pie" ? "막대 차트" : "원형 차트"}
-          </Button>
-        </CardAction>
+        {data && data.chartData.length > 15 && (
+          <CardAction>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowAll((current) => !current)}
+            >
+              {showAll ? "Top 15 보기" : "전체 보기"}
+            </Button>
+          </CardAction>
+        )}
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="min-w-0">
         {isLoading ? (
           <div>불러오는 중...</div>
         ) : isError || !data ? (
           <div>장르 데이터를 불러오지 못했습니다.</div>
         ) : data.empty ? (
           <div>표시할 장르 데이터가 없습니다.</div>
-        ) : chartMode === "pie" ? (
-          <ChartContainer config={data.chartConfig}>
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie
-                innerRadius={45}
-                data={data.chartData}
-                dataKey="count"
-                nameKey="key"
-              />
-              <ChartLegend content={<ChartLegendContent />} />
-            </PieChart>
-          </ChartContainer>
         ) : (
-          <ChartContainer config={data.chartConfig}>
-            <BarChart data={data.chartData}>
-              <XAxis dataKey="genre" />
-              <YAxis />
+          <ChartContainer
+            config={data.chartConfig}
+            initialDimension={{ width: 280, height: 320 }}
+            className="h-80 min-h-80 w-full min-w-0 aspect-auto sm:h-96 sm:min-h-96"
+          >
+            <BarChart
+              data={visibleChartData}
+              margin={{ top: 8, right: 8, bottom: 8, left: -20 }}
+            >
+              <XAxis dataKey="genre" minTickGap={12} tickMargin={8} />
+              <YAxis allowDecimals={false} domain={[0, "auto"]} />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="count" fill="var(--chart-1)" />
+              <Bar dataKey="count" />
             </BarChart>
           </ChartContainer>
         )}

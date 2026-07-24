@@ -10,7 +10,7 @@ export function TotalBookCard() {
   });
 
   return (
-    <Card className="w-full">
+    <Card className="min-w-0 w-full">
       <CardHeader>
         <CardTitle>등록한 전체 도서</CardTitle>
       </CardHeader>

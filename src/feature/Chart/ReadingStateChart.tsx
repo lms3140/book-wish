@@ -52,11 +52,11 @@ export function ReadingStateChart() {
   });
 
   return (
-    <Card className="w-full">
+    <Card className="min-w-0 w-full">
       <CardHeader>
         <CardTitle>독서 상태 통계</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0">
         {isLoading ? (
           <div>불러오는 중...</div>
         ) : isError || !data ? (
@@ -64,7 +64,11 @@ export function ReadingStateChart() {
         ) : data.empty ? (
           <div>표시할 독서 상태 데이터가 없습니다.</div>
         ) : (
-          <ChartContainer config={chartConfig}>
+          <ChartContainer
+            config={chartConfig}
+            initialDimension={{ width: 280, height: 288 }}
+            className="h-72 min-h-72 w-full min-w-0 aspect-auto sm:h-80 sm:min-h-80"
+          >
             <PieChart>
               <ChartTooltip
                 cursor={false}
@@ -77,7 +81,12 @@ export function ReadingStateChart() {
                 nameKey="readingStatus"
               />
               <ChartLegend
-                content={<ChartLegendContent nameKey="readingStatus" />}
+                content={
+                  <ChartLegendContent
+                    nameKey="readingStatus"
+                    className="flex-wrap gap-x-3 gap-y-2 px-2 text-[11px] sm:text-xs"
+                  />
+                }
               />
             </PieChart>
           </ChartContainer>
