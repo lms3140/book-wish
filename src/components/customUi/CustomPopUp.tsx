@@ -6,15 +6,16 @@ import { ScrollArea } from "../ui/scroll-area";
 type CustomPopupProps = {
   value?: string;
   label?: string;
+  invalid?: boolean;
   onChange: (value: string) => void;
-  className?: string;
   options?: string[];
 };
 
 export function CustomPopup({
   value,
+  label = "값",
+  invalid = false,
   onChange,
-  className,
   options = [],
 }: CustomPopupProps) {
   const [searchText, setSearchText] = useState("");
@@ -34,14 +35,21 @@ export function CustomPopup({
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <div className="grid gap-2">
+      <div className="grid w-full gap-2">
         <PopoverTrigger asChild>
-          <Input value={selectedValue} readOnly placeholder="장르" />
+          <Input
+            className="h-10 w-full cursor-pointer"
+            value={selectedValue}
+            readOnly
+            aria-invalid={invalid}
+            placeholder={`${label} 선택`}
+          />
         </PopoverTrigger>
       </div>
-      <PopoverContent className={className}>
+      <PopoverContent className="w-(--radix-popover-trigger-width) min-w-64">
         <Input
-          placeholder="장르"
+          className="h-10"
+          placeholder={`${label} 검색 또는 직접 입력`}
           value={searchText}
           onKeyDown={(e) => {
             if (e.nativeEvent.isComposing) return;

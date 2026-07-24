@@ -27,9 +27,13 @@ export function TopbarActions() {
       <ThemeToggle />
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive">
+          <Button
+            variant="destructive"
+            className="size-9 px-0 sm:w-auto sm:px-3"
+            aria-label="로그아웃"
+          >
             <DoorOpen />
-            로그아웃
+            <span className="hidden sm:inline">로그아웃</span>
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>

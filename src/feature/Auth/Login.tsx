@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -67,14 +68,21 @@ export function Login() {
     }
   };
   return (
-    <div className="h-lvh flex items-center">
-      <div className="mx-auto">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--color-primary),transparent_28%)] opacity-15" />
+      <div className="relative w-full max-w-sm">
         <form onSubmit={handleSubmit(handleLogin)}>
-          <Card className="min-w-xs max-w-sm ">
+          <Card className="w-full border-primary/15 shadow-xl shadow-primary/5">
             <CardHeader>
-              <CardTitle>로그인</CardTitle>
+              <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-black text-primary-foreground">
+                B
+              </div>
+              <CardTitle className="text-xl font-bold">로그인</CardTitle>
+              <CardDescription className="text-sm">
+                Book Wish에서 나만의 서재를 관리하세요.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <FormInputField control={control} label="아이디" name="userId" />
               <FormInputField
                 control={control}
@@ -88,8 +96,8 @@ export function Login() {
                   : null}
               </p>
             </CardContent>
-            <CardFooter className="flex flex-col gap-2">
-              <Button className="w-full" type="submit">
+            <CardFooter className="flex flex-col gap-2 pt-1">
+              <Button className="h-10 w-full text-sm" type="submit">
                 로그인
               </Button>
             </CardFooter>

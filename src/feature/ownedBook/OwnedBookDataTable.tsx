@@ -101,7 +101,7 @@ export function OwnedBookDataTable<TValue>({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3 py-4">
+      <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-muted/25 p-3">
         <div className="flex flex-1 flex-wrap gap-2">
           <Input
             placeholder="책 제목 필터"
@@ -111,7 +111,7 @@ export function OwnedBookDataTable<TValue>({
             onChange={(event) =>
               table.getColumn("bookTitle")?.setFilterValue(event.target.value)
             }
-            className="min-w-56 flex-1 sm:max-w-sm"
+            className="min-w-56 flex-1 bg-background sm:max-w-xs"
           />
           <Input
             placeholder="장르 필터"
@@ -119,7 +119,7 @@ export function OwnedBookDataTable<TValue>({
             onChange={(event) =>
               table.getColumn("genre")?.setFilterValue(event.target.value)
             }
-            className="min-w-56 flex-1 sm:max-w-sm"
+            className="min-w-56 flex-1 bg-background sm:max-w-xs"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -176,7 +176,7 @@ export function OwnedBookDataTable<TValue>({
           </DropdownMenu>
         </div>
       </div>
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-xl border border-border/70 bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -202,8 +202,8 @@ export function OwnedBookDataTable<TValue>({
                 const isSelected = selectedBook?.id === row.original.id;
                 const highlightClass =
                   panelMode === "edit"
-                    ? "bg-amber-50 dark:bg-amber-900/20"
-                    : "bg-muted";
+                    ? "bg-amber-50/80 dark:bg-amber-900/20"
+                    : "bg-primary/10";
 
                 return (
                   <TableRow
@@ -238,7 +238,7 @@ export function OwnedBookDataTable<TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2 pt-5">
         <Button
           variant="outline"
           size="sm"

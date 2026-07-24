@@ -1,4 +1,5 @@
-import { Link } from "react-router";
+import { BarChart3, BookMarked, Heart } from "lucide-react";
+import { Link, useLocation } from "react-router";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -6,38 +7,46 @@ import {
   NavigationMenuList,
 } from "../ui/navigation-menu";
 import { navigationMenuTriggerStyle } from "../ui/navigation-menu-variants";
+import { cn } from "@/lib/utils";
+
+const navigationItems = [
+  { to: "/", label: "찜 도서", icon: Heart },
+  { to: "/owned", label: "소장 도서", icon: BookMarked },
+  { to: "/chart", label: "통계", icon: BarChart3 },
+];
 
 export function BookNavigation() {
+  const { pathname } = useLocation();
+
   return (
-    <div className="flex justify-center">
+    <nav className="flex justify-center" aria-label="주요 메뉴">
       <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              asChild
-              className={navigationMenuTriggerStyle()}
-            >
-              <Link to={"/"}>찜 도서</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              asChild
-              className={navigationMenuTriggerStyle()}
-            >
-              <Link to={"/owned"}>소장도서</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              asChild
-              className={navigationMenuTriggerStyle()}
-            >
-              <Link to={"/chart"}>통계</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
+        <NavigationMenuList className="gap-1">
+          {navigationItems.map(({ to, label, icon: Icon }) => {
+            const isActive = pathname === to;
+
+            return (
+              <NavigationMenuItem key={to}>
+                <NavigationMenuLink
+                  asChild
+                  active={isActive}
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "h-9 gap-1.5 px-2.5 text-sm text-muted-foreground sm:px-3",
+                    isActive &&
+                      "bg-primary/15 font-semibold text-foreground hover:bg-primary/20",
+                  )}
+                >
+                  <Link to={to} aria-current={isActive ? "page" : undefined}>
+                    <Icon className="size-4" aria-hidden="true" />
+                    {label}
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            );
+          })}
         </NavigationMenuList>
       </NavigationMenu>
-    </div>
+    </nav>
   );
 }

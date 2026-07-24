@@ -112,7 +112,7 @@ export function BookAddForm() {
           control={control}
           genreList={genreList?.data ?? []}
         />
-        <div className="flex justify-end">
+        <div data-slot="form-actions">
           <Button type="submit" size={"lg"} disabled={mutation.isPending}>
             {mutation.isPending ? "저장 중.." : "저장"}
           </Button>
