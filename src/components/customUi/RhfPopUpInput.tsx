@@ -34,8 +34,8 @@ export function RhfPopUpInput<T extends FieldValues>({
           </FieldLabel>
           <CustomPopup
             label={label}
-            className="w-fit"
             value={field.value}
+            invalid={fieldState.invalid}
             onChange={field.onChange}
             options={options}
           />

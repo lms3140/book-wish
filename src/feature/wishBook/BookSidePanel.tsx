@@ -17,8 +17,8 @@ const titleMapping: Record<SidePanelMode, string> = {
 };
 
 const titleColorMapping: Record<SidePanelMode, string> = {
-  edit: "text-amber-500",
-  add: "text-blue-500",
+  edit: "text-amber-700 dark:text-amber-300",
+  add: "text-primary-foreground dark:text-primary",
 };
 
 function renderPanelContent(panelMode: SidePanelMode) {
@@ -61,16 +61,20 @@ export function BookSidePanel() {
 
   return (
     <div>
-      <Card>
-        <CardHeader>
-          <CardTitle className={titleColorMapping[panelMode]}>
+      <Card className="border-primary/15 bg-linear-to-br from-card to-primary/4">
+        <CardHeader className="items-center border-b border-border/60 pb-4">
+          <CardTitle
+            className={`${titleColorMapping[panelMode]} text-base font-bold`}
+          >
             {titleMapping[panelMode]}
           </CardTitle>
           <CardAction>
             {renderPanelActions(panelMode, setPanelMode, hasSelectedBook)}
           </CardAction>
         </CardHeader>
-        <CardContent>{renderPanelContent(panelMode)}</CardContent>
+        <CardContent className="pt-1">
+          {renderPanelContent(panelMode)}
+        </CardContent>
       </Card>
     </div>
   );

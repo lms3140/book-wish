@@ -58,13 +58,14 @@ export function Register() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted/20">
-      <Card className="w-full max-w-sm">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--color-primary),transparent_28%)] opacity-15" />
+      <Card className="relative w-full max-w-sm border-primary/15 shadow-xl shadow-primary/5">
         <CardHeader>
-          <CardTitle>회원가입</CardTitle>
+          <CardTitle className="text-xl font-bold">회원가입</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-2" onSubmit={handleSubmit(handleRegister)}>
+          <form className="grid gap-4" onSubmit={handleSubmit(handleRegister)}>
             <FormInputField control={control} label="아이디" name="userId" />
             <FormInputField control={control} label="닉네임" name="nickname" />
             <FormInputField

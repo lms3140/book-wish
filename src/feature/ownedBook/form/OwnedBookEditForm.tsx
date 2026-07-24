@@ -92,7 +92,7 @@ export function OwnedBookEditForm() {
           control={control}
           genreList={genreList?.data ?? []}
         />
-        <div className="flex justify-end">
+        <div data-slot="form-actions">
           <Button type="submit" size={"lg"} disabled={mutation.isPending}>
             {mutation.isPending ? "수정 중..." : "수정"}
           </Button>

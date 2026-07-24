@@ -57,7 +57,7 @@ export function OwnedBookFormFields({
           name="shortReview"
           placeholder="짧은평"
           control={control}
-          label="짧은평"
+          label="짧은평 (선택)"
         />
 
         <Controller
