@@ -14,10 +14,10 @@ export function ChartPage() {
             지금까지 쌓인 독서 기록을 한눈에 확인하세요.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2">
           <TotalBookCard />
           <ReadingStateChart />
-          <div className="md:col-span-2">
+          <div className="min-w-0 md:col-span-2">
             <GenreChart />
           </div>
         </div>
